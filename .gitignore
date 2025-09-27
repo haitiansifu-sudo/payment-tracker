@@ -1,4 +1,4 @@
-﻿# IDE and Editor files
+# IDE and Editor files
 .vscode/
 .idea/
 *.swp
@@ -50,7 +50,6 @@ data/
 
 # Composer (if using)
 vendor/
-composer.lock
 
 # Node modules (if using)
 node_modules/

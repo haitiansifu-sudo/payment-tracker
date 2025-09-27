@@ -1,0 +1,21 @@
+﻿name: payment-tracker
+services:
+- name: web
+  source_dir: /
+  github:
+    repo: haitiansifu-sudo/payment-tracker
+    branch: master
+  run_command: php -S 0.0.0.0:8080 index.php
+  environment_slug: php
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  http_port: 8080
+  routes:
+  - path: /
+  health_check:
+    http_path: /
+  envs:
+  - key: APP_ENV
+    value: production
+  - key: PHP_VERSION
+    value: "8.1"

@@ -1,0 +1,2980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';">
+    <title>Weekly Payment Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+        }
+
+        .main-content {
+            flex: 1;
+        }
+
+        .sidebar {
+            width: 300px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 30px;
+            border-left: 1px solid #e0e0e0;
+        }
+
+        .sidebar h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+
+
+        .week-summary {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .week-summary h4 {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .week-total {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .current-week .week-total {
+            color: #4facfe;
+        }
+
+        .last-week .week-total {
+            color: #666;
+        }
+
+        .goals-display {
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .goals-label {
+            font-weight: 500;
+        }
+
+        .goals-amount {
+            font-weight: 600;
+            color: #28a745;
+        }
+
+        .goals-progress {
+            margin-top: 10px;
+        }
+
+        .goals-progress-bar {
+            background: #f0f0f0;
+            border-radius: 3px;
+            height: 8px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .goals-progress-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+            border-radius: 3px;
+        }
+
+        .goals-progress-text {
+            font-size: 0.8rem;
+            color: #666;
+            text-align: center;
+        }
+
+        .goals-percentage {
+            font-weight: 600;
+        }
+
+        .end-of-week-message {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-align: center;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .end-of-week-message.success-message {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .end-of-week-message.warning-message {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .comparison-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .comparison-title {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .progress-bar {
+            background: #f0f0f0;
+            border-radius: 3px;
+            height: 8.4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        /* Daily Progress Bars */
+        .daily-progress-container {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: #e0e0e0;
+            margin-bottom: 1px;
+            padding: 10px 0;
+        }
+
+        .daily-progress {
+            background: white;
+            padding: 8px;
+            text-align: center;
+        }
+
+        .daily-progress-label {
+            font-size: 0.7rem;
+            color: #666;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .daily-progress-bar {
+            background: #f0f0f0;
+            border-radius: 2px;
+            height: 8.4px;
+            overflow: hidden;
+            margin-bottom: 4px;
+        }
+
+        .daily-progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+
+        .daily-progress-amount {
+            font-size: 0.65rem;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .comparison-text {
+            font-size: 0.9rem;
+            color: #666;
+            text-align: center;
+        }
+
+        .comparison-percentage {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin: 0;
+            font-weight: 300;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .welcome-text {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .btn-logout, .btn-settings {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-logout:hover, .btn-settings:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-1px);
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .nav-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .week-display {
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: #e0e0e0;
+            margin: 0;
+        }
+
+        .day {
+            background: white;
+            padding: 20px;
+            min-height: 200px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            border: 2px solid transparent;
+        }
+
+        .day:hover {
+            background: #f8f9ff;
+            border-color: #4facfe;
+            transform: translateY(-2px);
+        }
+
+        .day-header {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .day-header .add-payment {
+            margin-bottom: 8px;
+        }
+        
+        .day-info {
+            text-align: center;
+        }
+
+        .day-name {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .day-number {
+            font-size: 1.5rem;
+            color: #333;
+        }
+
+        .day-total {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .day-total.zero {
+            background: #f8f9fa;
+            color: #6c757d;
+            border: 1px dashed #dee2e6;
+        }
+
+        .payments {
+            margin-top: 15px;
+        }
+
+        .payment-item {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+        }
+
+        .payment-company {
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .payment-amount {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .hr-estimate {
+            font-size: 0.8rem;
+            opacity: 0.9;
+            color: white;
+            font-style: italic;
+        }
+
+        .payment-item.detention-pay {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        }
+
+        .payment-item.weekend-bonus {
+            background: linear-gradient(135deg, #feca57 0%, #ff9ff3 100%);
+        }
+
+        .add-payment {
+            background: #f0f0f0;
+            border: 2px dashed #ccc;
+            color: #666;
+            padding: 6px 8px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .day:hover .add-payment {
+            background: #e8f4fd;
+            border-color: #4facfe;
+            color: #4facfe;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal h2 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .autocomplete-suggestions {
+            position: absolute;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 150px;
+            overflow-y: auto;
+            z-index: 1001;
+            width: 100%;
+        }
+
+        .autocomplete-suggestion {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .autocomplete-suggestion:hover {
+            background: #f8f9ff;
+        }
+
+        .autocomplete-suggestion:last-child {
+            border-bottom: none;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .add-payment-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 0;
+            transition: background-color 0.3s;
+        }
+
+        .add-payment-btn:hover {
+            background: #45a049;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        /* Dark Theme Styles */
+        .dark-theme {
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+        }
+
+        .dark-theme .container {
+            background-color: #2d2d2d;
+        }
+
+        .dark-theme .sidebar {
+            background: linear-gradient(135deg, #333 0%, #444 100%);
+        }
+
+        .dark-theme .week-summary {
+            background-color: #444;
+            color: #e0e0e0;
+        }
+
+        .dark-theme .comparison-bar {
+            background-color: #444;
+            color: #e0e0e0;
+        }
+
+        .dark-theme .day {
+            background-color: #3a3a3a;
+            color: #e0e0e0;
+            border-color: #555;
+        }
+
+        .dark-theme .day:hover {
+            background-color: #4a4a4a;
+        }
+
+        .dark-theme .add-payment {
+            background-color: #555;
+            color: #ccc;
+            border-color: #666;
+        }
+
+        .dark-theme .day:hover .add-payment {
+            background-color: #666;
+            color: #4facfe;
+            border-color: #4facfe;
+        }
+
+        .dark-theme .modal-content {
+            background-color: #333;
+            color: #e0e0e0;
+        }
+
+        .dark-theme .form-group input,
+        .dark-theme .form-group select {
+            background-color: #444;
+            color: #e0e0e0;
+            border-color: #555;
+        }
+
+        .dark-theme .autocomplete-suggestions {
+            background-color: #444;
+            border-color: #555;
+        }
+
+        .dark-theme .autocomplete-suggestion {
+            color: #e0e0e0;
+            border-color: #555;
+        }
+
+        .dark-theme .autocomplete-suggestion:hover {
+            background-color: #555;
+        }
+
+        .dark-theme .btn-secondary {
+            background-color: #555;
+            color: #e0e0e0;
+        }
+
+        .dark-theme .btn-secondary:hover {
+            background-color: #666;
+        }
+
+        .dark-theme .payment-item.detention-pay {
+            background: linear-gradient(135deg, #e55353 0%, #d63031 100%);
+        }
+
+        .dark-theme .payment-item.weekend-bonus {
+            background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);
+        }
+
+        /* Tab Navigation Styles */
+        .tab-navigation {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 12px 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background: #4facfe;
+            color: white;
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: #e9ecef;
+            color: #333;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Analytics Styles */
+        .analytics-section {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .analytics-section h4 {
+            color: #333;
+            margin-bottom: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 150px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .company-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .company-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            margin-bottom: 6px;
+        }
+
+        .company-name {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .company-amount {
+            font-weight: 600;
+            color: #28a745;
+        }
+
+
+
+        .predictions {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+        }
+
+        .prediction-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .prediction-label {
+            color: #666;
+        }
+
+        .prediction-value {
+            font-weight: 600;
+            color: #4facfe;
+        }
+
+        /* Goals Styles */
+        .goals-section {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .goals-section h4 {
+            color: #333;
+            margin-bottom: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .goal-input-group {
+            margin-bottom: 12px;
+        }
+
+        .goal-input-group label {
+            display: block;
+            margin-bottom: 4px;
+            color: #555;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .goal-input-group input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .goal-input-group input:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .streaks {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+        }
+
+        .streak-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .streak-label {
+            color: #666;
+        }
+
+        .streak-value {
+            font-weight: 600;
+            color: #28a745;
+        }
+
+        .recommendations {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+        }
+
+        .recommendation-item {
+            background: white;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border-left: 4px solid #4facfe;
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        /* Dark Theme for New Components */
+        .dark-theme .tab-navigation {
+            background: #444;
+        }
+
+        .dark-theme .tab-btn {
+            color: #ccc;
+        }
+
+        .dark-theme .tab-btn.active {
+            background: #4facfe;
+            color: white;
+        }
+
+        .dark-theme .tab-btn:hover:not(.active) {
+            background: #555;
+            color: #e0e0e0;
+        }
+
+        .dark-theme .analytics-section,
+        .dark-theme .goals-section {
+            background: #444;
+            color: #e0e0e0;
+        }
+
+        .dark-theme .analytics-section h4,
+        .dark-theme .goals-section h4 {
+            color: #e0e0e0;
+        }
+
+        .dark-theme .chart-container {
+            background: #555;
+        }
+
+        .dark-theme .company-item {
+            background: #555;
+        }
+
+        .dark-theme .company-name {
+            color: #e0e0e0;
+        }
+
+        .dark-theme .predictions,
+        .dark-theme .streaks,
+        .dark-theme .recommendations {
+            background: #555;
+        }
+
+        .dark-theme .recommendation-item {
+            background: #666;
+            color: #ccc;
+        }
+
+        .dark-theme .goal-input-group input {
+            background: #555;
+            color: #e0e0e0;
+            border-color: #666;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .container {
+                max-width: 100%;
+            }
+            
+            .sidebar {
+                width: 250px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .header-top {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .user-info {
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+                display: flex !important;
+                align-items: flex-start !important;
+                justify-content: center !important;
+            }
+            
+            .container {
+                border-radius: 10px;
+                flex-direction: column !important;
+                display: flex !important;
+            }
+            
+            .main-content {
+                order: 1 !important;
+                flex: none !important;
+            }
+            
+            .sidebar {
+                width: 100% !important;
+                order: 2 !important;
+                padding: 15px;
+            }
+            
+            .sidebar h3 {
+                text-align: center;
+                margin-bottom: 15px;
+            }
+            
+            .week-summary {
+                display: inline-block;
+                width: calc(50% - 10px);
+                margin-right: 10px;
+                margin-bottom: 15px;
+            }
+            
+            .week-summary:nth-child(even) {
+                margin-right: 0;
+            }
+            
+            .comparison-bar {
+                clear: both;
+                margin-top: 10px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .navigation {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .nav-btn {
+                width: 100%;
+                max-width: 200px;
+                margin: 0 auto;
+            }
+            
+            .week-display {
+                order: -1;
+                text-align: center;
+            }
+            
+            .calendar {
+                grid-template-columns: 1fr;
+                gap: 10px;
+                background: transparent;
+            }
+            
+            .day {
+                min-height: 150px;
+                border-radius: 10px;
+                margin-bottom: 10px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 5px;
+            }
+            
+            .header {
+                padding: 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .welcome-text {
+                font-size: 0.9rem;
+            }
+            
+            .btn-logout, .btn-settings {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            
+            .day {
+                padding: 15px;
+                min-height: 120px;
+            }
+            
+            .day-number {
+                font-size: 1.2rem;
+            }
+            
+            .payment-item {
+                font-size: 0.75rem;
+                padding: 6px 8px;
+            }
+            
+            .week-total {
+                font-size: 1.5rem;
+            }
+            
+            .week-summary {
+                width: 100%;
+                margin-right: 0;
+            }
+            
+            .modal-content {
+                margin: 5% auto;
+                padding: 20px;
+                width: 95%;
+            }
+            
+            .modal-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-content">
+            <div class="header">
+                <div class="header-top">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <img src="logo.svg" alt="Payment Tracker Logo" style="width: 43px; height: 43px;">
+                        <h1 style="margin: 0;">Weekly Payment Tracker</h1>
+                    </div>
+                    <div class="user-info">
+                        <span class="welcome-text">Welcome, <span id="username">User</span></span>
+                        <button class="btn-logout" id="logoutBtn">Logout</button>
+                        <button class="btn-settings" id="settingsBtn">Settings</button>
+                    </div>
+                </div>
+                <div class="navigation">
+                    <button class="nav-btn" id="prevWeek">← Previous Week</button>
+                    <div class="week-display" id="weekDisplay"></div>
+                    <button class="nav-btn" id="nextWeek">Next Week →</button>
+                </div>
+            </div>
+            
+            <div class="daily-progress-container" id="dailyProgressContainer">
+                <!-- Daily progress bars will be generated by JavaScript -->
+            </div>
+            
+            <div class="calendar" id="calendar">
+                <!-- Calendar days will be generated by JavaScript -->
+            </div>
+        </div>
+        
+        <div class="sidebar">
+            <!-- Tab Navigation -->
+            <div class="tab-navigation">
+                <button class="tab-btn active" data-tab="summary">Summary</button>
+                <button class="tab-btn" data-tab="analytics">Analytics</button>
+                <button class="tab-btn" data-tab="goals">Goals</button>
+            </div>
+            
+            <!-- Summary Tab -->
+            <div class="tab-content active" id="summaryTab">
+                <h3>Weekly Summary</h3>
+                
+                <div class="week-summary current-week">
+                    <h4>Current Week</h4>
+                    <div class="goals-display" id="goalsDisplay">
+                        <span class="goals-label">Goal: </span>
+                        <span class="goals-amount" id="goalsAmount">$0.00</span>
+                    </div>
+                    <div class="week-total" id="currentWeekTotal">$0.00</div>
+                </div>
+                
+                <div class="week-summary last-week">
+                    <h4>Last Week</h4>
+                    <div class="week-total" id="lastWeekTotal">$0.00</div>
+                </div>
+                
+                <div class="comparison-bar">
+                    <div class="comparison-title">Week Comparison</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="comparisonProgress"></div>
+                    </div>
+                    <div class="comparison-text" id="comparisonText">No data to compare</div>
+                </div>
+                
+                <h3 style="margin-top: 30px;">Monthly Summary</h3>
+                
+                <div class="week-summary current-week">
+                    <h4>Current Month</h4>
+                    <div class="week-total" id="currentMonthTotal">$0.00</div>
+                </div>
+                
+                <div class="week-summary last-week">
+                    <h4>Last Month</h4>
+                    <div class="week-total" id="lastMonthTotal">$0.00</div>
+                </div>
+                
+                <div class="comparison-bar">
+                    <div class="comparison-title">Month Comparison</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="monthComparisonProgress"></div>
+                    </div>
+                    <div class="comparison-text" id="monthComparisonText">No data to compare</div>
+                </div>
+            </div>
+            
+            <!-- Analytics Tab -->
+            <div class="tab-content" id="analyticsTab">
+                <h3>Advanced Analytics</h3>
+                
+                <!-- Trend Chart -->
+                <div class="analytics-section">
+                    <h4>Weekly Trends</h4>
+                    <div class="chart-container">
+                        <canvas id="trendChart" width="250" height="150"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Company Performance -->
+                <div class="analytics-section">
+                    <h4>Top Companies</h4>
+                    <div id="companyPerformance" class="company-list">
+                        <!-- Company performance will be populated by JavaScript -->
+                    </div>
+                </div>
+                
+
+                
+                <!-- AI Predictions -->
+                <div class="analytics-section">
+                    <h4>Earnings Forecast</h4>
+                    <div id="aiPredictions" class="predictions">
+                        <!-- AI predictions will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Goals Tab -->
+            <div class="tab-content" id="goalsTab">
+                <h3>Smart Goals</h3>
+                
+                <!-- Dynamic Goals -->
+                <div class="goals-section">
+                    <h4>Weekly Goals</h4>
+                    <div class="goal-input-group">
+                        <label>Weekday Goal ($):</label>
+                        <input type="number" id="weekdayGoal" placeholder="0" step="0.01">
+                    </div>
+                    <div class="goal-input-group">
+                        <label>Weekend Goal ($):</label>
+                        <input type="number" id="weekendGoal" placeholder="0" step="0.01">
+                    </div>
+                    <button class="btn btn-primary" id="saveGoalsBtn">Save Goals</button>
+                </div>
+                
+                <!-- Achievement Streaks -->
+                <div class="goals-section">
+                    <h4>Achievement Streaks</h4>
+                    <div id="achievementStreaks" class="streaks">
+                        <!-- Achievement streaks will be populated by JavaScript -->
+                    </div>
+                </div>
+                
+                <!-- Goal Recommendations -->
+                <div class="goals-section">
+                    <h4>Smart Recommendations</h4>
+                    <div id="goalRecommendations" class="recommendations">
+                        <!-- Goal recommendations will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeModal">&times;</span>
+            <h2>Add Payment Entry</h2>
+            <form id="paymentForm">
+                <div class="form-group">
+                    <label for="companyName">Company Name:</label>
+                    <div style="position: relative;">
+                        <input type="text" id="companyName" name="companyName" autocomplete="off">
+                        <div id="autocompleteSuggestions" class="autocomplete-suggestions"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="paymentAmount">Payment Amount ($):</label>
+                    <input type="number" id="paymentAmount" name="paymentAmount" step="0.01" min="0">
+                </div>
+                <div class="form-group" style="display: flex; gap: 10px;">
+                    <div style="flex: 1;">
+                        <label for="workHours">Hours:</label>
+                        <input type="number" id="workHours" name="workHours" min="0" max="24" step="0.1" placeholder="0">
+                    </div>
+                    <div style="flex: 1;">
+                        <label for="workMinutes">Minutes:</label>
+                        <input type="number" id="workMinutes" name="workMinutes" min="0" max="59" placeholder="0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div id="hourlyRateDisplay" style="font-weight: bold; color: #007bff; margin-top: 5px; display: none;"></div>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="detentionCheckbox" name="detentionCheckbox">
+                        Detention Pay
+                    </label>
+                </div>
+                <div id="detentionFields" class="detention-fields" style="display: none;">
+                    <div class="form-group">
+                        <label for="detentionHourlyRate">Hourly Rate ($):</label>
+                        <input type="number" id="detentionHourlyRate" name="detentionHourlyRate" step="0.01" min="0" placeholder="Enter hourly rate">
+                    </div>
+                    <div class="form-group" style="display: flex; gap: 10px;">
+                        <div style="flex: 1;">
+                            <label for="detentionHours">Hours:</label>
+                            <input type="number" id="detentionHours" name="detentionHours" min="0" max="23" placeholder="0">
+                        </div>
+                        <div style="flex: 1;">
+                            <label for="detentionMinutes">Minutes:</label>
+                            <input type="number" id="detentionMinutes" name="detentionMinutes" min="0" max="59" placeholder="0">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div id="detentionPayDisplay" style="font-weight: bold; color: #28a745; margin-top: 10px;"></div>
+                    </div>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeSettingsModal">&times;</span>
+            <h2>User Settings</h2>
+            <form id="settingsForm">
+                <div class="form-group">
+                    <label for="userTheme">Theme:</label>
+                    <select id="userTheme" name="userTheme">
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="userCurrency">Currency:</label>
+                    <select id="userCurrency" name="userCurrency">
+                        <option value="USD">USD ($)</option>
+                        <option value="EUR">EUR (€)</option>
+                        <option value="GBP">GBP (£)</option>
+                        <option value="CAD">CAD (C$)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="userDateFormat">Date Format:</label>
+                    <select id="userDateFormat" name="userDateFormat">
+                        <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                        <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                        <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="userNotifications" name="userNotifications">
+                        Enable Notifications
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label for="weekendBonus">Wkend Bonus Amount ($):</label>
+                    <input type="number" id="weekendBonus" name="weekendBonus" step="0.01" min="0" placeholder="Enter wkend bonus amount">
+                </div>
+                <div class="form-group">
+                    <label for="weeklyGoals">Weekly Goals Amount ($):</label>
+                    <input type="number" id="weeklyGoals" name="weeklyGoals" step="0.01" min="0" placeholder="Enter weekly goals amount">
+                </div>
+                <hr style="margin: 20px 0; border: 1px solid #eee;">
+                <h3 style="margin-bottom: 15px; color: #333;">Account Settings</h3>
+                <div class="form-group">
+                    <label for="newUsername">Change Name:</label>
+                    <input type="text" id="newUsername" name="newUsername" placeholder="Enter new name">
+                </div>
+                <div class="form-group">
+                    <label for="currentPassword">Current Password:</label>
+                    <input type="password" id="currentPassword" name="currentPassword" placeholder="Enter current password">
+                </div>
+                <div class="form-group">
+                    <label for="newPassword">New Password:</label>
+                    <input type="password" id="newPassword" name="newPassword" placeholder="Enter new password (min 6 chars)" minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="confirmNewPassword">Confirm New Password:</label>
+                    <input type="password" id="confirmNewPassword" name="confirmNewPassword" placeholder="Confirm new password" minlength="6">
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-secondary" id="cancelSettingsBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Settings</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        class PaymentCalendar {
+            constructor() {
+                // Check if user is logged in
+                this.currentUser = this.getCurrentUser();
+                if (!this.currentUser) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
+                this.currentDate = new Date();
+                this.selectedDate = null;
+                this.payments = this.loadPayments();
+                this.companies = this.loadCompanies();
+                
+                this.initializeElements();
+                this.initializeCSRF();
+                this.bindEvents();
+                this.renderCalendar();
+                this.updateUserInfo();
+            }
+
+            getCurrentUser() {
+                const userData = localStorage.getItem('currentUser');
+                return userData ? JSON.parse(userData) : null;
+            }
+
+            // Security validation methods
+            sanitizeInput(input) {
+                if (typeof input !== 'string') return '';
+                return input.replace(/[<>"'&]/g, function(match) {
+                    const escapeMap = {
+                        '<': '&lt;',
+                        '>': '&gt;',
+                        '"': '&quot;',
+                        "'": '&#x27;',
+                        '&': '&amp;'
+                    };
+                    return escapeMap[match];
+                }).trim();
+            }
+
+            escapeHtml(text) {
+                if (typeof text !== 'string') return String(text);
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            validateCompanyName(name) {
+                if (!name || typeof name !== 'string') return false;
+                if (name.length < 1 || name.length > 100) return false;
+                // Allow letters, numbers, spaces, and basic punctuation
+                const validPattern = /^[a-zA-Z0-9\s\-_.,&()]+$/;
+                return validPattern.test(name);
+            }
+
+            validateAmount(amount) {
+                if (isNaN(amount) || amount <= 0) return false;
+                if (amount < 0.01 || amount > 999999.99) return false;
+                return true;
+            }
+
+            validateHours(hours) {
+                if (isNaN(hours) || hours < 0) return false;
+                if (hours > 24) return false; // Max 24 hours per day
+                return true;
+            }
+
+            validateMinutes(minutes) {
+                if (isNaN(minutes) || minutes < 0) return false;
+                if (minutes >= 60) return false; // Minutes should be 0-59
+                return true;
+            }
+
+            validatePassword(password) {
+                if (!password || typeof password !== 'string') return false;
+                if (password.length < 6) return false;
+                // Require at least one letter and one number
+                const hasLetter = /[a-zA-Z]/.test(password);
+                const hasNumber = /[0-9]/.test(password);
+                return hasLetter && hasNumber;
+            }
+
+            generateCSRFToken() {
+                return Math.random().toString(36).substring(2) + Date.now().toString(36);
+            }
+
+            validateCSRFToken(token) {
+                const storedToken = sessionStorage.getItem('csrfToken');
+                return token === storedToken;
+            }
+
+            hashPassword(password) {
+                // Simple hash function for demo (in production, use bcrypt or similar)
+                let hash = 0;
+                for (let i = 0; i < password.length; i++) {
+                    const char = password.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + char;
+                    hash = hash & hash; // Convert to 32-bit integer
+                }
+                return hash.toString();
+            }
+
+            sanitizeUserData(userData) {
+                return {
+                    id: userData.id,
+                    username: this.sanitizeInput(userData.username || ''),
+                    name: this.sanitizeInput(userData.name || ''),
+                    password: userData.password, // Already hashed
+                    email: this.sanitizeInput(userData.email || '')
+                };
+            }
+
+            initializeCSRF() {
+                const token = this.generateCSRFToken();
+                sessionStorage.setItem('csrfToken', token);
+                
+                // Add CSRF token to forms
+                const forms = document.querySelectorAll('form');
+                forms.forEach(form => {
+                    let csrfInput = form.querySelector('input[name="csrf_token"]');
+                    if (!csrfInput) {
+                        csrfInput = document.createElement('input');
+                        csrfInput.type = 'hidden';
+                        csrfInput.name = 'csrf_token';
+                        form.appendChild(csrfInput);
+                    }
+                    csrfInput.value = token;
+                });
+            }
+
+            updateUserInfo() {
+                 const usernameElement = document.getElementById('username');
+                 if (usernameElement && this.currentUser) {
+                     const username = this.sanitizeInput(this.currentUser.name || this.currentUser.username || 'User');
+                     usernameElement.textContent = username;
+                 }
+             }
+
+            initializeElements() {
+                this.calendar = document.getElementById('calendar');
+                this.weekDisplay = document.getElementById('weekDisplay');
+                this.dailyProgressContainer = document.getElementById('dailyProgressContainer');
+                this.modal = document.getElementById('paymentModal');
+                this.form = document.getElementById('paymentForm');
+                this.companyInput = document.getElementById('companyName');
+                this.amountInput = document.getElementById('paymentAmount');
+                this.suggestionsDiv = document.getElementById('autocompleteSuggestions');
+                
+                // Work hours elements
+                this.workHoursInput = document.getElementById('workHours');
+                this.workMinutesInput = document.getElementById('workMinutes');
+                this.hourlyRateDisplay = document.getElementById('hourlyRateDisplay');
+                
+                // Settings modal elements
+                this.settingsModal = document.getElementById('settingsModal');
+                this.settingsForm = document.getElementById('settingsForm');
+                this.closeSettingsModalBtn = document.getElementById('closeSettingsModal');
+                this.cancelSettingsBtn = document.getElementById('cancelSettingsBtn');
+            }
+
+            bindEvents() {
+                document.getElementById('prevWeek').addEventListener('click', () => this.previousWeek());
+                document.getElementById('nextWeek').addEventListener('click', () => this.nextWeek());
+                document.getElementById('closeModal').addEventListener('click', () => this.closeModal());
+                document.getElementById('cancelBtn').addEventListener('click', () => this.closeModal());
+                
+                this.form.addEventListener('submit', (e) => this.handleFormSubmit(e));
+                this.companyInput.addEventListener('input', (e) => this.handleCompanyInput(e));
+                
+                // Work hours calculation event listeners
+                this.amountInput.addEventListener('input', () => this.calculateHourlyRate());
+                this.workHoursInput.addEventListener('input', () => this.calculateHourlyRate());
+                this.workMinutesInput.addEventListener('input', () => this.calculateHourlyRate());
+                
+                // Detention pay event listeners
+                document.getElementById('detentionCheckbox').addEventListener('change', (e) => this.handleDetentionCheckbox(e));
+                document.getElementById('detentionHourlyRate').addEventListener('input', () => this.calculateDetentionPay());
+                document.getElementById('detentionHours').addEventListener('input', () => this.calculateDetentionPay());
+                document.getElementById('detentionMinutes').addEventListener('input', () => this.calculateDetentionPay());
+                
+                // Close modal when clicking outside
+                this.modal.addEventListener('click', (e) => {
+                    if (e.target === this.modal) this.closeModal();
+                });
+                
+                // Close suggestions when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!this.companyInput.contains(e.target) && !this.suggestionsDiv.contains(e.target)) {
+                        this.suggestionsDiv.style.display = 'none';
+                    }
+                });
+                
+                // Settings and logout handlers
+                document.getElementById('settingsBtn').addEventListener('click', () => this.openSettingsModal());
+                document.getElementById('logoutBtn').addEventListener('click', () => this.logout());
+                document.getElementById('closeSettingsModal').addEventListener('click', () => this.closeSettingsModal());
+                document.getElementById('cancelSettingsBtn').addEventListener('click', () => this.closeSettingsModal());
+                this.settingsForm.addEventListener('submit', (e) => this.handleSettingsSubmit(e));
+                
+                // Close settings modal when clicking outside
+                this.settingsModal.addEventListener('click', (e) => {
+                    if (e.target === this.settingsModal) this.closeSettingsModal();
+                });
+            }
+
+            getWeekDates() {
+                const startOfWeek = new Date(this.currentDate);
+                const day = startOfWeek.getDay();
+                const diff = startOfWeek.getDate() - day;
+                startOfWeek.setDate(diff);
+                
+                const dates = [];
+                for (let i = 0; i < 7; i++) {
+                    const date = new Date(startOfWeek);
+                    date.setDate(startOfWeek.getDate() + i);
+                    dates.push(date);
+                }
+                return dates;
+            }
+
+            renderCalendar() {
+                const dates = this.getWeekDates();
+                const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                
+                this.calendar.innerHTML = '';
+                
+                dates.forEach((date, index) => {
+                    const dayElement = document.createElement('div');
+                    dayElement.className = 'day';
+                    dayElement.dataset.date = date.toISOString().split('T')[0];
+                    
+                    const dayPayments = this.getPaymentsForDate(date);
+                    
+                    const dayTotal = dayPayments.reduce((sum, payment) => sum + payment.amount, 0);
+                    
+                    dayElement.innerHTML = `
+                        <div class="day-header">
+                            <div class="add-payment">+ Add</div>
+                            <div class="day-info">
+                                <div class="day-name">${this.escapeHtml(dayNames[index])}</div>
+                                <div class="day-number">${date.getDate()}</div>
+                            </div>
+                        </div>
+                        <div class="payments">
+                            ${dayPayments.map((payment, index) => {
+                                let paymentClass = 'payment-item';
+                                if (payment.company === 'Detention Pay') {
+                                    paymentClass += ' detention-pay';
+                                } else if (payment.company === 'Wkend Bonus') {
+                                    paymentClass += ' weekend-bonus';
+                                }
+                                return `
+                                <div class="${paymentClass}" data-payment-index="${index}" style="cursor: pointer; position: relative;" title="Click to edit">
+                                    <div class="payment-company">${this.escapeHtml(payment.company)}</div>
+                                    <div class="payment-amount">$${this.escapeHtml(payment.amount.toFixed(0))}</div>
+                                    ${payment.hourlyRateData ? `<div class="hr-estimate">HR estm: $${payment.hourlyRateData.hourlyRate.toFixed(2)}/hr</div>` : ''}
+                                    <div class="remove-payment" style="position: absolute; top: 5px; right: 8px; font-size: 12px; opacity: 0.7; cursor: pointer;" title="Remove payment">×</div>
+                                </div>
+                                `;
+                            }).join('')}
+                        </div>
+                        <div class="day-total ${dayTotal === 0 ? 'zero' : ''}">
+                                Total: $${this.escapeHtml(dayTotal.toFixed(0))}
+                        </div>
+                    `;
+                    
+                    // Add event listener for opening modal (only on day element, not payment items)
+                    dayElement.addEventListener('click', (e) => {
+                        // Check if clicked element is the remove button
+                        if (e.target.closest('.remove-payment')) {
+                            e.stopPropagation();
+                            const paymentItem = e.target.closest('.payment-item');
+                            const paymentIndex = parseInt(paymentItem.dataset.paymentIndex);
+                            this.removePayment(date, paymentIndex);
+                        }
+                        // Check if clicked element is a payment item (but not the remove button)
+                        else if (e.target.closest('.payment-item')) {
+                            e.stopPropagation();
+                            const paymentItem = e.target.closest('.payment-item');
+                            const paymentIndex = parseInt(paymentItem.dataset.paymentIndex);
+                            this.editPayment(date, paymentIndex);
+                        } else {
+                            this.openModal(date);
+                        }
+                    });
+                    this.calendar.appendChild(dayElement);
+                });
+                
+                this.updateWeekDisplay();
+                this.updateSummary();
+            }
+
+            updateWeekDisplay() {
+                const dates = this.getWeekDates();
+                const startDate = dates[0];
+                const endDate = dates[6];
+                
+                const options = { month: 'short', day: 'numeric', year: 'numeric' };
+                const startStr = startDate.toLocaleDateString('en-US', options);
+                const endStr = endDate.toLocaleDateString('en-US', options);
+                
+                this.weekDisplay.textContent = `${startStr} - ${endStr}`;
+            }
+
+            previousWeek() {
+                this.currentDate.setDate(this.currentDate.getDate() - 7);
+                this.renderCalendar();
+            }
+
+            nextWeek() {
+                this.currentDate.setDate(this.currentDate.getDate() + 7);
+                this.renderCalendar();
+            }
+
+            openModal(date) {
+                this.selectedDate = date;
+                
+                // Ensure CSRF token is present in the form
+                let csrfInput = this.form.querySelector('input[name="csrf_token"]');
+                if (!csrfInput) {
+                    csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = 'csrf_token';
+                    this.form.appendChild(csrfInput);
+                }
+                csrfInput.value = sessionStorage.getItem('csrfToken');
+                
+                this.modal.style.display = 'block';
+                this.companyInput.focus();
+            }
+
+            closeModal() {
+                this.modal.style.display = 'none';
+                this.form.reset();
+                this.suggestionsDiv.style.display = 'none';
+                this.selectedDate = null;
+                
+                // Reset detention fields
+                document.getElementById('detentionFields').style.display = 'none';
+                document.getElementById('detentionPayDisplay').textContent = '';
+            }
+            
+            handleDetentionCheckbox(e) {
+                const detentionFields = document.getElementById('detentionFields');
+                if (e.target.checked) {
+                    detentionFields.style.display = 'block';
+                } else {
+                    detentionFields.style.display = 'none';
+                    document.getElementById('detentionPayDisplay').textContent = '';
+                }
+            }
+            
+            calculateDetentionPay() {
+                const hourlyRate = parseFloat(document.getElementById('detentionHourlyRate').value) || 0;
+                const hours = parseInt(document.getElementById('detentionHours').value) || 0;
+                const minutes = parseInt(document.getElementById('detentionMinutes').value) || 0;
+                
+                if (hourlyRate > 0 && (hours > 0 || minutes > 0)) {
+                    const totalHours = hours + (minutes / 60);
+                    const detentionPay = hourlyRate * totalHours;
+                    document.getElementById('detentionPayDisplay').textContent = `Detention Pay: $${detentionPay.toFixed(2)}`;
+                } else {
+                    document.getElementById('detentionPayDisplay').textContent = '';
+                }
+            }
+            
+            getDetentionData() {
+                const isDetentionChecked = document.getElementById('detentionCheckbox').checked;
+                if (!isDetentionChecked) {
+                    return null;
+                }
+                
+                const hourlyRate = parseFloat(document.getElementById('detentionHourlyRate').value) || 0;
+                const hours = parseInt(document.getElementById('detentionHours').value) || 0;
+                const minutes = parseInt(document.getElementById('detentionMinutes').value) || 0;
+                
+                if (hourlyRate > 0 && (hours > 0 || minutes > 0)) {
+                    const totalHours = hours + (minutes / 60);
+                    const detentionPay = hourlyRate * totalHours;
+                    return {
+                        hourlyRate,
+                        hours,
+                        minutes,
+                        totalHours,
+                        detentionPay
+                    };
+                }
+                
+                return null;
+            }
+
+            handleFormSubmit(e) {
+                e.preventDefault();
+                
+                // CSRF protection
+                const csrfToken = e.target.querySelector('input[name="csrf_token"]')?.value;
+                if (!this.validateCSRFToken(csrfToken)) {
+                    alert('Security token invalid. Please refresh the page.');
+                    return;
+                }
+                
+                const company = this.sanitizeInput(this.companyInput.value.trim());
+                const amount = parseFloat(this.amountInput.value);
+                
+                // Get work hours data
+                const workHours = parseFloat(this.workHoursInput.value) || 0;
+                const workMinutes = parseFloat(this.workMinutesInput.value) || 0;
+                
+                // Validate work hours and minutes if provided
+                if (workHours > 0 && !this.validateHours(workHours)) {
+                    alert('Work hours must be between 0 and 24 hours.');
+                    return;
+                }
+                
+                if (workMinutes > 0 && !this.validateMinutes(workMinutes)) {
+                    alert('Work minutes must be between 0 and 59 minutes.');
+                    return;
+                }
+                
+                // Get detention data if checkbox is checked
+                const detentionData = this.getDetentionData();
+                
+                // Check if this is a detention-only payment
+                const isDetentionOnly = detentionData && detentionData.detentionPay > 0 && (!company || company === '');
+                
+                // Enhanced input validation - allow detention-only payments
+                if (!isDetentionOnly && !this.validateCompanyName(company)) {
+                    alert('Company name must be 1-100 characters and contain only letters, numbers, spaces, and basic punctuation.');
+                    return;
+                }
+                
+                if (!isDetentionOnly && !this.validateAmount(amount)) {
+                    alert('Payment amount must be a positive number between $0.01 and $999,999.99');
+                    return;
+                }
+                
+                // Allow submission if: (company and amount > 0) OR (detention-only payment)
+                if ((company && amount > 0) || isDetentionOnly) {
+                    try {
+                        // For detention-only payments, use empty company and 0 amount
+                        const finalCompany = isDetentionOnly ? '' : company;
+                        const finalAmount = isDetentionOnly ? 0 : amount;
+                        
+                        this.addPayment(this.selectedDate, finalCompany, finalAmount, detentionData);
+                        this.closeModal();
+                        this.renderCalendar();
+                        // Show success message
+                        const successMsg = document.createElement('div');
+                        successMsg.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #28a745; color: white; padding: 10px 20px; border-radius: 5px; z-index: 9999;';
+                        successMsg.textContent = isDetentionOnly ? 'Detention pay added successfully!' : 'Payment added successfully!';
+                        document.body.appendChild(successMsg);
+                        setTimeout(() => successMsg.remove(), 3000);
+                    } catch (error) {
+                        alert('Error adding payment: ' + error.message);
+                    }
+                } else {
+                    alert('Please fill in company name and payment amount, or add detention pay.');
+                }
+            }
+
+            handleCompanyInput(e) {
+                const value = this.sanitizeInput(e.target.value.toLowerCase());
+                
+                if (value.length === 0) {
+                    this.suggestionsDiv.style.display = 'none';
+                    return;
+                }
+                
+                const suggestions = this.companies
+                    .filter(company => company.name.toLowerCase().includes(value))
+                    .sort((a, b) => new Date(b.lastUsed) - new Date(a.lastUsed))
+                    .slice(0, 5);
+                
+                if (suggestions.length > 0) {
+                    this.suggestionsDiv.innerHTML = suggestions.map(company => {
+                        const sanitizedName = this.escapeHtml(company.name);
+                        const sanitizedAmount = this.escapeHtml(company.amount.toFixed(2));
+                        const sanitizedHours = company.hours ? this.escapeHtml(company.hours.toString()) : '';
+                        const sanitizedMinutes = company.minutes ? this.escapeHtml(company.minutes.toString()) : '';
+                        return `<div class="autocomplete-suggestion" data-company="${sanitizedName}" data-amount="${sanitizedAmount}" data-hours="${sanitizedHours}" data-minutes="${sanitizedMinutes}">${sanitizedName} - $${sanitizedAmount}</div>`;
+                    }).join('');
+                    
+                    this.suggestionsDiv.style.display = 'block';
+                    
+                    // Add click handlers to suggestions
+                    this.suggestionsDiv.querySelectorAll('.autocomplete-suggestion').forEach(suggestion => {
+                        suggestion.addEventListener('click', () => {
+                            this.companyInput.value = suggestion.dataset.company;
+                            this.amountInput.value = suggestion.dataset.amount;
+                            
+                            // Fill in hours and minutes if available
+                            if (suggestion.dataset.hours) {
+                                this.workHoursInput.value = suggestion.dataset.hours;
+                            }
+                            if (suggestion.dataset.minutes) {
+                                this.workMinutesInput.value = suggestion.dataset.minutes;
+                            }
+                            
+                            this.suggestionsDiv.style.display = 'none';
+                            
+                            // Trigger the hourly rate calculation if hours are present
+                            this.calculateHourlyRate();
+                            
+                            // Submit the form automatically after selecting a suggestion
+                            this.form.dispatchEvent(new Event('submit'));
+                        });
+                    });
+                } else {
+                    this.suggestionsDiv.style.display = 'none';
+                }
+            }
+
+            calculateHourlyRate() {
+                const amount = parseFloat(this.amountInput.value) || 0;
+                const hours = parseFloat(this.workHoursInput.value) || 0;
+                const minutes = parseFloat(this.workMinutesInput.value) || 0;
+                
+                // Convert total time to hours (minutes / 60)
+                const totalHours = hours + (minutes / 60);
+                
+                if (amount > 0 && totalHours > 0) {
+                    const hourlyRate = amount / totalHours;
+                    this.hourlyRateDisplay.textContent = `Hourly Rate: $${hourlyRate.toFixed(2)}/hr`;
+                    this.hourlyRateDisplay.style.display = 'block';
+                } else {
+                    this.hourlyRateDisplay.style.display = 'none';
+                }
+            }
+
+            addPayment(date, company, amount, detentionData = null) {
+                const dateStr = date.toISOString().split('T')[0];
+                
+                if (!this.payments[dateStr]) {
+                    this.payments[dateStr] = [];
+                }
+                
+                // Sanitize and validate data before storing
+                const sanitizedCompany = this.sanitizeInput(company);
+                const validatedAmount = this.validateAmount(amount) ? amount : 0;
+                
+                // Add the customer payment only if company name is provided
+                if (sanitizedCompany && sanitizedCompany.trim() !== '') {
+                    const paymentEntry = { 
+                        company: sanitizedCompany, 
+                        amount: validatedAmount,
+                        timestamp: new Date().toISOString()
+                    };
+                    
+                    // Add hourly rate data if hours are provided
+                    const hours = parseFloat(this.workHoursInput.value) || 0;
+                    const minutes = parseFloat(this.workMinutesInput.value) || 0;
+                    const totalHours = hours + (minutes / 60);
+                    
+                    if (totalHours > 0) {
+                        const hourlyRate = validatedAmount / totalHours;
+                        paymentEntry.hourlyRateData = {
+                            hours: hours,
+                            minutes: minutes,
+                            totalHours: totalHours,
+                            hourlyRate: hourlyRate
+                        };
+                    }
+                    
+                    this.payments[dateStr].push(paymentEntry);
+                }
+                
+                // Add detention pay if detention data is provided
+                if (detentionData && detentionData.detentionPay > 0) {
+                    // Check if detention pay already exists for this day
+                    const hasDetentionPay = this.payments[dateStr].some(payment => payment.company === 'Detention Pay');
+                    
+                    if (!hasDetentionPay) {
+                        this.payments[dateStr].push({ 
+                            company: 'Detention Pay', 
+                            amount: detentionData.detentionPay,
+                            timestamp: new Date().toISOString(),
+                            detentionDetails: {
+                                hourlyRate: detentionData.hourlyRate,
+                                hours: detentionData.hours,
+                                minutes: detentionData.minutes,
+                                totalHours: detentionData.totalHours
+                            }
+                        });
+                    }
+                }
+                
+                // Check if it's a weekend (Saturday = 6, Sunday = 0) and apply bonus once per day
+                const dayOfWeek = date.getDay();
+                const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+                
+                if (isWeekend) {
+                    const settings = this.getUserSettings();
+                    const weekendBonus = settings.weekendBonus || 0;
+                    
+                    // Check if wkend bonus already exists for this day
+            const hasWeekendBonus = this.payments[dateStr].some(payment => payment.company === 'Wkend Bonus');
+                    
+                    if (weekendBonus > 0 && !hasWeekendBonus) {
+                        // Add wkend bonus only if it doesn't exist yet
+            this.payments[dateStr].push({
+                company: 'Wkend Bonus', 
+                            amount: weekendBonus,
+                            timestamp: new Date().toISOString()
+                        });
+                    }
+                }
+                
+                // Add company to companies list if not exists or update with most recent amount (only for valid companies)
+                if (sanitizedCompany && sanitizedCompany.trim() !== '') {
+                    const hours = parseFloat(this.workHoursInput.value) || 0;
+                    const minutes = parseFloat(this.workMinutesInput.value) || 0;
+                    
+                    const existingCompany = this.companies.find(c => c.name === sanitizedCompany);
+                    if (!existingCompany) {
+                        const companyData = { 
+                            name: sanitizedCompany, 
+                            amount: validatedAmount, 
+                            lastUsed: new Date().toISOString() 
+                        };
+                        
+                        // Add hourly rate data if hours are provided
+                        if (hours > 0 || minutes > 0) {
+                            companyData.hours = hours;
+                            companyData.minutes = minutes;
+                        }
+                        
+                        this.companies.push(companyData);
+                    } else {
+                        // Update the amount, hourly rate data, and last used date for existing company
+                        existingCompany.amount = validatedAmount;
+                        existingCompany.lastUsed = new Date().toISOString();
+                        
+                        // Update hourly rate data if hours are provided
+                        if (hours > 0 || minutes > 0) {
+                            existingCompany.hours = hours;
+                            existingCompany.minutes = minutes;
+                        } else {
+                            // Remove hourly rate data if no hours provided
+                            delete existingCompany.hours;
+                            delete existingCompany.minutes;
+                        }
+                    }
+                    this.saveCompanies();
+                }
+                
+                this.savePayments();
+            }
+
+            editPayment(date, paymentIndex) {
+                const dateStr = date.toISOString().split('T')[0];
+                
+                if (this.payments[dateStr] && this.payments[dateStr][paymentIndex]) {
+                    const payment = this.payments[dateStr][paymentIndex];
+                    
+                    // Open the modal for this date
+                    this.openModal(date);
+                    
+                    // Pre-fill the form with existing payment data
+                    this.companyInput.value = payment.company;
+                    this.amountInput.value = payment.amount;
+                    
+                    // Pre-fill hours and minutes if available
+                    if (payment.hourlyRateData) {
+                        this.workHoursInput.value = payment.hourlyRateData.hours || '';
+                        this.workMinutesInput.value = payment.hourlyRateData.minutes || '';
+                        this.calculateHourlyRate();
+                    }
+                    
+                    // Remove the existing payment so it can be replaced when form is submitted
+                    this.payments[dateStr].splice(paymentIndex, 1);
+                    if (this.payments[dateStr].length === 0) {
+                        delete this.payments[dateStr];
+                    }
+                    this.savePayments();
+                    this.renderCalendar();
+                }
+            }
+
+            removePayment(date, paymentIndex) {
+                const dateStr = date.toISOString().split('T')[0];
+                
+                if (this.payments[dateStr] && this.payments[dateStr][paymentIndex]) {
+                    // Remove the payment at the specified index
+                    this.payments[dateStr].splice(paymentIndex, 1);
+                    
+                    // If no payments left for this date, remove the date entry
+                    if (this.payments[dateStr].length === 0) {
+                        delete this.payments[dateStr];
+                    }
+                    
+                    this.savePayments();
+                    this.renderCalendar();
+                }
+            }
+
+            getPaymentsForDate(date) {
+                const dateStr = date.toISOString().split('T')[0];
+                return this.payments[dateStr] || [];
+            }
+
+            loadPayments() {
+                const key = `calendarPayments_${this.currentUser.username}`;
+                const saved = localStorage.getItem(key);
+                return saved ? JSON.parse(saved) : {};
+            }
+
+            savePayments() {
+                const key = `calendarPayments_${this.currentUser.username}`;
+                const sanitizedPayments = this.sanitizePaymentsData(this.payments);
+                localStorage.setItem(key, JSON.stringify(sanitizedPayments));
+            }
+
+            loadCompanies() {
+                const key = `calendarCompanies_${this.currentUser.username}`;
+                const saved = localStorage.getItem(key);
+                const companies = saved ? JSON.parse(saved) : [];
+                
+                // Convert old format (string array) to new format (object array)
+                if (companies.length > 0 && typeof companies[0] === 'string') {
+                    return companies.map(name => ({ name: name, amount: 0, lastUsed: new Date().toISOString() }));
+                }
+                
+                // Ensure all companies have lastUsed field for backward compatibility
+                return companies.map(company => ({
+                    name: company.name,
+                    amount: company.amount || 0,
+                    lastUsed: company.lastUsed || new Date().toISOString()
+                }));
+            }
+
+            saveCompanies() {
+                const key = `calendarCompanies_${this.currentUser.username}`;
+                const sanitizedCompanies = this.companies.map(company => ({
+                    name: this.sanitizeInput(company.name),
+                    amount: this.validateAmount(company.amount) ? company.amount : 0,
+                    lastUsed: company.lastUsed
+                }));
+                localStorage.setItem(key, JSON.stringify(sanitizedCompanies));
+            }
+
+            openSettingsModal() {
+                this.settingsModal.style.display = 'block';
+                this.loadUserSettings();
+            }
+
+            closeSettingsModal() {
+                this.settingsModal.style.display = 'none';
+            }
+
+            loadUserSettings() {
+                 const settings = this.getUserSettings();
+                 document.getElementById('userTheme').value = this.sanitizeInput(settings.theme);
+                 document.getElementById('userCurrency').value = this.sanitizeInput(settings.currency);
+                 document.getElementById('userDateFormat').value = this.sanitizeInput(settings.dateFormat);
+                 document.getElementById('userNotifications').checked = Boolean(settings.notifications);
+                 document.getElementById('weekendBonus').value = this.validateAmount(settings.weekendBonus) ? settings.weekendBonus : 0;
+                 document.getElementById('weeklyGoals').value = this.validateAmount(settings.weeklyGoals) ? settings.weeklyGoals : 0;
+                 
+                 // Load current username with sanitization
+                 const username = this.sanitizeInput(this.currentUser.name || this.currentUser.username || '');
+                 document.getElementById('newUsername').value = username;
+                 
+                 // Clear password fields
+                 document.getElementById('currentPassword').value = '';
+                 document.getElementById('newPassword').value = '';
+                 document.getElementById('confirmNewPassword').value = '';
+             }
+
+            getUserSettings() {
+                const key = `userSettings_${this.currentUser.username}`;
+                const saved = localStorage.getItem(key);
+                return saved ? JSON.parse(saved) : {
+                    theme: 'light',
+                    currency: 'USD',
+                    dateFormat: 'MM/DD/YYYY',
+                    notifications: true,
+                    weekendBonus: 0,
+                    weeklyGoals: 0
+                };
+            }
+
+            saveUserSettings(settings) {
+                const key = `userSettings_${this.currentUser.username}`;
+                const sanitizedSettings = {
+                    theme: this.sanitizeInput(settings.theme),
+                    currency: this.sanitizeInput(settings.currency),
+                    dateFormat: this.sanitizeInput(settings.dateFormat),
+                    notifications: Boolean(settings.notifications),
+                    weekendBonus: this.validateAmount(settings.weekendBonus) ? settings.weekendBonus : 0,
+                    weeklyGoals: this.validateAmount(settings.weeklyGoals) ? settings.weeklyGoals : 0
+                };
+                localStorage.setItem(key, JSON.stringify(sanitizedSettings));
+            }
+
+            handleSettingsSubmit(e) {
+                 e.preventDefault();
+                 
+                 // CSRF protection
+                 const csrfToken = e.target.querySelector('input[name="csrf_token"]')?.value;
+                 if (!this.validateCSRFToken(csrfToken)) {
+                     alert('Security token invalid. Please refresh the page.');
+                     return;
+                 }
+                 
+                 const settings = {
+                     theme: this.sanitizeInput(document.getElementById('userTheme').value),
+                     currency: this.sanitizeInput(document.getElementById('userCurrency').value),
+                     dateFormat: this.sanitizeInput(document.getElementById('userDateFormat').value),
+                     notifications: Boolean(document.getElementById('userNotifications').checked),
+                     weekendBonus: this.validateAmount(parseFloat(document.getElementById('weekendBonus').value)) ? parseFloat(document.getElementById('weekendBonus').value) : 0,
+                     weeklyGoals: this.validateAmount(parseFloat(document.getElementById('weeklyGoals').value)) ? parseFloat(document.getElementById('weeklyGoals').value) : 0
+                 };
+                 
+                 // Handle username change
+                 const newUsername = this.sanitizeInput(document.getElementById('newUsername').value.trim());
+                 if (newUsername && newUsername !== (this.currentUser.name || this.currentUser.username)) {
+                     if (this.validateCompanyName(newUsername)) {
+                         this.updateUsername(newUsername);
+                     } else {
+                         alert('Invalid username format');
+                         return;
+                     }
+                 }
+                 
+                 // Handle password change
+                 const currentPassword = document.getElementById('currentPassword').value;
+                 const newPassword = document.getElementById('newPassword').value;
+                 const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+                 
+                 if (currentPassword || newPassword || confirmNewPassword) {
+                     if (!this.updatePassword(currentPassword, newPassword, confirmNewPassword)) {
+                         return; // Don't close modal if password update failed
+                     }
+                 }
+                 
+                 this.saveUserSettings(settings);
+                 this.closeSettingsModal();
+                 
+                 // Update display to reflect new settings
+                 this.updateSummary();
+                 
+                 // Apply theme if changed
+                 if (settings.theme === 'dark') {
+                     document.body.classList.add('dark-theme');
+                 } else {
+                     document.body.classList.remove('dark-theme');
+                 }
+                 
+                 alert('Settings updated successfully!');
+             }
+
+            updateUsername(newUsername) {
+                 // Update current user object
+                 this.currentUser.name = newUsername;
+                 
+                 // Update in localStorage
+                 localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
+                 
+                 // Update in users array
+                 const users = this.loadAllUsers();
+                 const userIndex = users.findIndex(u => u.id === this.currentUser.id);
+                 if (userIndex !== -1) {
+                     users[userIndex].name = newUsername;
+                     localStorage.setItem('calendarUsers', JSON.stringify(users));
+                 }
+                 
+                 // Update display
+                 this.updateUserInfo();
+             }
+
+             updatePassword(currentPassword, newPassword, confirmNewPassword) {
+                 if (!currentPassword) {
+                     alert('Please enter your current password');
+                     return false;
+                 }
+                 
+                 if (currentPassword !== this.currentUser.password) {
+                     alert('Current password is incorrect');
+                     return false;
+                 }
+                 
+                 if (!newPassword) {
+                     alert('Please enter a new password');
+                     return false;
+                 }
+                 
+                 if (!this.validatePassword(newPassword)) {
+                     alert('New password must be at least 6 characters long and contain at least one letter and one number');
+                     return false;
+                 }
+                 
+                 if (newPassword !== confirmNewPassword) {
+                     alert('New passwords do not match');
+                     return false;
+                 }
+                 
+                 // Hash password before storing (simple hash for demo)
+                 const hashedPassword = this.hashPassword(newPassword);
+                 
+                 // Update current user object
+                 this.currentUser.password = hashedPassword;
+                 
+                 // Update in localStorage with sanitized data
+                 const sanitizedUser = this.sanitizeUserData(this.currentUser);
+                 localStorage.setItem('currentUser', JSON.stringify(sanitizedUser));
+                 
+                 // Update in users array
+                 const users = this.loadAllUsers();
+                 const userIndex = users.findIndex(u => u.id === this.currentUser.id);
+                 if (userIndex !== -1) {
+                     users[userIndex].password = hashedPassword;
+                     localStorage.setItem('calendarUsers', JSON.stringify(users));
+                 }
+                 
+                 return true;
+             }
+
+             loadAllUsers() {
+                 const saved = localStorage.getItem('calendarUsers');
+                 return saved ? JSON.parse(saved) : [];
+             }
+
+             logout() {
+                 localStorage.removeItem('currentUser');
+                 window.location.href = 'login.html';
+             }
+
+            updateSummary() {
+                const currentWeekTotal = this.getCurrentWeekTotal();
+                const lastWeekTotal = this.getLastWeekTotal();
+                const currentMonthTotal = this.getCurrentMonthTotal();
+                const lastMonthTotal = this.getLastMonthTotal();
+                
+                // Update goals display
+                const settings = this.getUserSettings();
+                const weeklyGoals = settings.weeklyGoals || 0;
+                document.getElementById('goalsAmount').textContent = `$${weeklyGoals.toFixed(2)}`;
+                
+                document.getElementById('currentWeekTotal').textContent = `$${currentWeekTotal.toFixed(2)}`;
+                document.getElementById('lastWeekTotal').textContent = `$${lastWeekTotal.toFixed(2)}`;
+                document.getElementById('currentMonthTotal').textContent = `$${currentMonthTotal.toFixed(2)}`;
+                document.getElementById('lastMonthTotal').textContent = `$${lastMonthTotal.toFixed(2)}`;
+                
+                this.updateComparison(currentWeekTotal, lastWeekTotal);
+                this.updateMonthComparison(currentMonthTotal, lastMonthTotal);
+                this.updateGoalsTracking(currentWeekTotal, weeklyGoals);
+            }
+
+            getCurrentWeekTotal() {
+                const dates = this.getWeekDates();
+                let total = 0;
+                
+                dates.forEach(date => {
+                    const payments = this.getPaymentsForDate(date);
+                    total += payments.reduce((sum, payment) => sum + payment.amount, 0);
+                });
+                
+                return total;
+            }
+
+            getLastWeekTotal() {
+                const lastWeekDate = new Date(this.currentDate);
+                lastWeekDate.setDate(lastWeekDate.getDate() - 7);
+                
+                const startOfLastWeek = new Date(lastWeekDate);
+                const day = startOfLastWeek.getDay();
+                const diff = startOfLastWeek.getDate() - day;
+                startOfLastWeek.setDate(diff);
+                
+                let total = 0;
+                
+                for (let i = 0; i < 7; i++) {
+                    const date = new Date(startOfLastWeek);
+                    date.setDate(startOfLastWeek.getDate() + i);
+                    const payments = this.getPaymentsForDate(date);
+                    total += payments.reduce((sum, payment) => sum + payment.amount, 0);
+                }
+                
+                return total;
+            }
+
+            getCurrentMonthTotal() {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = now.getMonth();
+                
+                const startOfMonth = new Date(year, month, 1);
+                const endOfMonth = new Date(year, month + 1, 0);
+                
+                let total = 0;
+                
+                for (let day = 1; day <= endOfMonth.getDate(); day++) {
+                    const date = new Date(year, month, day);
+                    const payments = this.getPaymentsForDate(date);
+                    total += payments.reduce((sum, payment) => sum + payment.amount, 0);
+                }
+                
+                return total;
+            }
+
+            getLastMonthTotal() {
+                const now = new Date();
+                const year = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+                const month = now.getMonth() === 0 ? 11 : now.getMonth() - 1;
+                
+                const startOfLastMonth = new Date(year, month, 1);
+                const endOfLastMonth = new Date(year, month + 1, 0);
+                
+                let total = 0;
+                
+                for (let day = 1; day <= endOfLastMonth.getDate(); day++) {
+                    const date = new Date(year, month, day);
+                    const payments = this.getPaymentsForDate(date);
+                    total += payments.reduce((sum, payment) => sum + payment.amount, 0);
+                }
+                
+                return total;
+            }
+
+            updateComparison(currentTotal, lastTotal) {
+                const progressBar = document.getElementById('comparisonProgress');
+                const comparisonText = document.getElementById('comparisonText');
+                
+                if (lastTotal === 0 && currentTotal === 0) {
+                    progressBar.style.width = '0%';
+                    comparisonText.innerHTML = 'No data to compare';
+                    return;
+                }
+                
+                if (lastTotal === 0) {
+                    progressBar.style.width = '100%';
+                    comparisonText.innerHTML = `<span class="comparison-percentage">+100%</span> vs last week`;
+                    return;
+                }
+                
+                const percentage = ((currentTotal - lastTotal) / lastTotal) * 100;
+                const progressWidth = Math.min(Math.abs(percentage), 100);
+                
+                progressBar.style.width = `${progressWidth}%`;
+                
+                if (percentage > 0) {
+                    progressBar.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+                    comparisonText.innerHTML = `<span class="comparison-percentage">+${percentage.toFixed(1)}%</span> vs last week`;
+                } else if (percentage < 0) {
+                    progressBar.style.background = 'linear-gradient(135deg, #dc3545 0%, #fd7e14 100%)';
+                    comparisonText.innerHTML = `<span class="comparison-percentage">${percentage.toFixed(1)}%</span> vs last week`;
+                } else {
+                    progressBar.style.width = '50%';
+                    progressBar.style.background = 'linear-gradient(135deg, #6c757d 0%, #adb5bd 100%)';
+                    comparisonText.innerHTML = `<span class="comparison-percentage">0%</span> vs last week`;
+                }
+            }
+
+            updateMonthComparison(currentTotal, lastTotal) {
+                const progressBar = document.getElementById('monthComparisonProgress');
+                const comparisonText = document.getElementById('monthComparisonText');
+                
+                if (lastTotal === 0 && currentTotal === 0) {
+                    progressBar.style.width = '0%';
+                    comparisonText.innerHTML = 'No data to compare';
+                    return;
+                }
+                
+                if (lastTotal === 0) {
+                    progressBar.style.width = '100%';
+                    comparisonText.innerHTML = `<span class="comparison-percentage">+100%</span> vs last month`;
+                    return;
+                }
+                
+                const percentage = ((currentTotal - lastTotal) / lastTotal) * 100;
+                const progressWidth = Math.min(Math.abs(percentage), 100);
+                
+                progressBar.style.width = `${progressWidth}%`;
+                
+                if (percentage > 0) {
+                    progressBar.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+                    comparisonText.innerHTML = `<span class="comparison-percentage">+${percentage.toFixed(1)}%</span> vs last month`;
+                } else if (percentage < 0) {
+                    progressBar.style.background = 'linear-gradient(135deg, #dc3545 0%, #fd7e14 100%)';
+                    comparisonText.innerHTML = `<span class="comparison-percentage">${percentage.toFixed(1)}%</span> vs last month`;
+                } else {
+                    progressBar.style.width = '50%';
+                    progressBar.style.background = 'linear-gradient(135deg, #6c757d 0%, #adb5bd 100%)';
+                    comparisonText.innerHTML = `<span class="comparison-percentage">0%</span> vs last month`;
+                }
+            }
+
+            updateGoalsTracking(currentTotal, goalsAmount) {
+                // Add goals progress display to the current week section
+                const currentWeekSection = document.querySelector('.current-week');
+                let goalsProgress = currentWeekSection.querySelector('.goals-progress');
+                
+                if (!goalsProgress) {
+                    goalsProgress = document.createElement('div');
+                    goalsProgress.className = 'goals-progress';
+                    goalsProgress.innerHTML = `
+                        <div class="goals-progress-bar">
+                            <div class="goals-progress-fill" id="goalsProgressFill"></div>
+                        </div>
+                        <div class="goals-progress-text" id="goalsProgressText">No goals set</div>
+                    `;
+                    currentWeekSection.appendChild(goalsProgress);
+                }
+                
+                const progressBar = document.getElementById('goalsProgressFill');
+                const progressText = document.getElementById('goalsProgressText');
+                
+                if (goalsAmount === 0) {
+                    progressBar.style.width = '0%';
+                    progressText.innerHTML = 'No goals set';
+                    return;
+                }
+                
+                const percentage = (currentTotal / goalsAmount) * 100;
+                const progressWidth = Math.min(percentage, 100);
+                
+                progressBar.style.width = `${progressWidth}%`;
+                
+                if (percentage >= 100) {
+                    progressBar.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+                    progressText.innerHTML = `<span class="goals-percentage">${percentage.toFixed(1)}%</span> of goal achieved`;
+                } else if (percentage >= 75) {
+                    progressBar.style.background = 'linear-gradient(135deg, #ffc107 0%, #fd7e14 100%)';
+                    progressText.innerHTML = `<span class="goals-percentage">${percentage.toFixed(1)}%</span> of goal achieved`;
+                } else {
+                    progressBar.style.background = 'linear-gradient(135deg, #dc3545 0%, #fd7e14 100%)';
+                    progressText.innerHTML = `<span class="goals-percentage">${percentage.toFixed(1)}%</span> of goal achieved`;
+                }
+                
+                // Check if it's the last day of the week for end-of-week evaluation
+                this.checkEndOfWeekEvaluation(currentTotal, goalsAmount);
+            }
+
+            checkEndOfWeekEvaluation(currentTotal, goalsAmount) {
+                const today = new Date();
+                const dayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
+                
+                // Check if today is Saturday (last day of the week)
+                if (dayOfWeek === 6 && goalsAmount > 0) {
+                    const percentage = (currentTotal / goalsAmount) * 100;
+                    let message = '';
+                    let messageClass = '';
+                    
+                    if (percentage >= 100) {
+                        const overPercentage = percentage - 100;
+                        message = `🎉 Goal Exceeded! Over exceeded by ${overPercentage.toFixed(1)}%`;
+                        messageClass = 'success-message';
+                    } else {
+                        const underPercentage = 100 - percentage;
+                        message = `📊 Goal not achieved. Under achieved by ${underPercentage.toFixed(1)}%`;
+                        messageClass = 'warning-message';
+                    }
+                    
+                    // Show end-of-week evaluation message
+                    this.showEndOfWeekMessage(message, messageClass);
+                }
+            }
+
+            showEndOfWeekMessage(message, messageClass) {
+                // Remove existing message if any
+                const existingMessage = document.querySelector('.end-of-week-message');
+                if (existingMessage) {
+                    existingMessage.remove();
+                }
+                
+                // Create and show new message
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `end-of-week-message ${messageClass}`;
+                messageDiv.innerHTML = message;
+                
+                const currentWeekSection = document.querySelector('.current-week');
+                currentWeekSection.appendChild(messageDiv);
+                
+                // Auto-hide message after 10 seconds
+                setTimeout(() => {
+                    if (messageDiv.parentNode) {
+                        messageDiv.remove();
+                    }
+                }, 10000);
+            }
+
+            sanitizePaymentsData(payments) {
+                const sanitized = {};
+                for (const dateStr in payments) {
+                    if (payments.hasOwnProperty(dateStr) && Array.isArray(payments[dateStr])) {
+                        sanitized[dateStr] = payments[dateStr].map(payment => ({
+                            company: this.sanitizeInput(payment.company),
+                            amount: this.validateAmount(payment.amount) ? payment.amount : 0,
+                            timestamp: payment.timestamp || new Date().toISOString()
+                        }));
+                    }
+                }
+                return sanitized;
+            }
+
+            // Analytics Dashboard Methods
+            initializeAnalytics() {
+                this.setupTabNavigation();
+                this.updateAnalytics();
+                this.setupGoalsHandlers();
+            }
+
+            setupTabNavigation() {
+                const tabBtns = document.querySelectorAll('.tab-btn');
+                const tabContents = document.querySelectorAll('.tab-content');
+
+                tabBtns.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const targetTab = btn.getAttribute('data-tab');
+                        
+                        // Remove active class from all tabs and contents
+                        tabBtns.forEach(b => b.classList.remove('active'));
+                        tabContents.forEach(c => c.classList.remove('active'));
+                        
+                        // Add active class to clicked tab and corresponding content
+                        btn.classList.add('active');
+                        document.getElementById(targetTab + 'Tab').classList.add('active');
+                        
+                        // Update analytics when analytics tab is opened
+                        if (targetTab === 'analytics') {
+                            this.updateAnalytics();
+                        }
+                    });
+                });
+            }
+
+            updateAnalytics() {
+                this.renderTrendChart();
+                this.updateCompanyPerformance();
+
+                this.updateAIPredictions();
+                this.updateAchievementStreaks();
+                this.updateGoalRecommendations();
+            }
+
+            renderTrendChart() {
+                const canvas = document.getElementById('trendChart');
+                if (!canvas) return;
+                
+                const ctx = canvas.getContext('2d');
+                const weeklyData = this.getWeeklyTrendData();
+                
+                // Clear canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                if (weeklyData.length === 0) {
+                    ctx.fillStyle = '#666';
+                    ctx.font = '14px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('No data available', canvas.width / 2, canvas.height / 2);
+                    return;
+                }
+                
+                // Draw simple line chart
+                const padding = 20;
+                const chartWidth = canvas.width - (padding * 2);
+                const chartHeight = canvas.height - (padding * 2);
+                const maxValue = Math.max(...weeklyData.map(d => d.amount));
+                
+                ctx.strokeStyle = '#4facfe';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                
+                weeklyData.forEach((data, index) => {
+                    const x = padding + (index * chartWidth / (weeklyData.length - 1));
+                    const y = padding + chartHeight - (data.amount / maxValue * chartHeight);
+                    
+                    if (index === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                });
+                
+                ctx.stroke();
+                
+                // Draw points
+                ctx.fillStyle = '#4facfe';
+                weeklyData.forEach((data, index) => {
+                    const x = padding + (index * chartWidth / (weeklyData.length - 1));
+                    const y = padding + chartHeight - (data.amount / maxValue * chartHeight);
+                    
+                    ctx.beginPath();
+                    ctx.arc(x, y, 4, 0, 2 * Math.PI);
+                    ctx.fill();
+                });
+            }
+
+            getWeeklyTrendData() {
+                const weeks = [];
+                const currentDate = new Date();
+                
+                for (let i = 4; i >= 0; i--) {
+                    const weekStart = new Date(currentDate);
+                    weekStart.setDate(currentDate.getDate() - (i * 7));
+                    weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+                    
+                    let weekTotal = 0;
+                    for (let j = 0; j < 7; j++) {
+                        const date = new Date(weekStart);
+                        date.setDate(weekStart.getDate() + j);
+                        const payments = this.getPaymentsForDate(date);
+                        weekTotal += payments.reduce((sum, payment) => sum + payment.amount, 0);
+                    }
+                    
+                    weeks.push({
+                        week: `Week ${5 - i}`,
+                        amount: weekTotal
+                    });
+                }
+                
+                return weeks;
+            }
+
+            updateCompanyPerformance() {
+                const companyTotals = {};
+                const allPayments = this.getAllPayments();
+                
+                allPayments.forEach(payment => {
+                    if (!companyTotals[payment.company]) {
+                        companyTotals[payment.company] = 0;
+                    }
+                    companyTotals[payment.company] += payment.amount;
+                });
+                
+                const sortedCompanies = Object.entries(companyTotals)
+                    .sort(([,a], [,b]) => b - a)
+                    .slice(0, 5);
+                
+                const container = document.getElementById('companyPerformance');
+                if (!container) return;
+                
+                if (sortedCompanies.length === 0) {
+                    container.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">No company data available</div>';
+                    return;
+                }
+                
+                container.innerHTML = sortedCompanies.map(([company, total]) => `
+                    <div class="company-item">
+                        <span class="company-name">${company}</span>
+                        <span class="company-amount">$${total.toFixed(0)}</span>
+                    </div>
+                `).join('');
+            }
+
+            getAllPayments() {
+                const allPayments = [];
+                const payments = this.loadPayments();
+                
+                for (const dateStr in payments) {
+                    if (payments[dateStr] && Array.isArray(payments[dateStr])) {
+                        allPayments.push(...payments[dateStr]);
+                    }
+                }
+                
+                return allPayments;
+            }
+
+
+
+            updateAIPredictions() {
+                const weeklyData = this.getWeeklyTrendData();
+                const container = document.getElementById('aiPredictions');
+                if (!container) return;
+                
+                if (weeklyData.length < 3) {
+                    container.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">Need more data for predictions</div>';
+                    return;
+                }
+                
+                // Simple trend analysis
+                const recentWeeks = weeklyData.slice(-3);
+                const avgGrowth = recentWeeks.reduce((sum, week, index) => {
+                    if (index === 0) return 0;
+                    return sum + (week.amount - recentWeeks[index - 1].amount);
+                }, 0) / (recentWeeks.length - 1);
+                
+                const currentWeek = recentWeeks[recentWeeks.length - 1].amount;
+                const nextWeekPrediction = Math.max(0, currentWeek + avgGrowth);
+                const nextMonthPrediction = Math.max(0, currentWeek * 4 + (avgGrowth * 4));
+                
+                container.innerHTML = `
+                    <div class="prediction-item">
+                        <span class="prediction-label">Next Week:</span>
+                        <span class="prediction-value">$${nextWeekPrediction.toFixed(0)}</span>
+                    </div>
+                    <div class="prediction-item">
+                        <span class="prediction-label">Next Month:</span>
+                        <span class="prediction-value">$${nextMonthPrediction.toFixed(0)}</span>
+                    </div>
+                    <div class="prediction-item">
+                        <span class="prediction-label">Trend:</span>
+                        <span class="prediction-value">${avgGrowth >= 0 ? '↗️ Growing' : '↘️ Declining'}</span>
+                    </div>
+                `;
+            }
+
+            setupGoalsHandlers() {
+                const saveGoalsBtn = document.getElementById('saveGoalsBtn');
+                if (saveGoalsBtn) {
+                    saveGoalsBtn.addEventListener('click', () => {
+                        this.saveDynamicGoals();
+                    });
+                }
+                
+                // Load existing goals
+                this.loadDynamicGoals();
+            }
+
+            saveDynamicGoals() {
+                const weekdayGoal = parseFloat(document.getElementById('weekdayGoal').value) || 0;
+                const weekendGoal = parseFloat(document.getElementById('weekendGoal').value) || 0;
+                
+                const settings = this.getUserSettings();
+                settings.weekdayGoal = weekdayGoal;
+                settings.weekendGoal = weekendGoal;
+                
+                this.saveUserSettings(settings);
+                alert('Goals saved successfully!');
+                
+                this.updateGoalRecommendations();
+            }
+
+            loadDynamicGoals() {
+                const settings = this.getUserSettings();
+                
+                const weekdayInput = document.getElementById('weekdayGoal');
+                const weekendInput = document.getElementById('weekendGoal');
+                
+                if (weekdayInput) weekdayInput.value = settings.weekdayGoal || '';
+                if (weekendInput) weekendInput.value = settings.weekendGoal || '';
+            }
+
+            updateAchievementStreaks() {
+                const container = document.getElementById('achievementStreaks');
+                if (!container) return;
+                
+                const settings = this.getUserSettings();
+                const weeklyGoal = settings.weeklyGoals || 0;
+                
+                if (weeklyGoal === 0) {
+                    container.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">Set weekly goals to track streaks</div>';
+                    return;
+                }
+                
+                // Calculate current streak
+                let currentStreak = 0;
+                let maxStreak = 0;
+                let tempStreak = 0;
+                
+                const currentDate = new Date();
+                for (let i = 0; i < 12; i++) {
+                    const weekStart = new Date(currentDate);
+                    weekStart.setDate(currentDate.getDate() - (i * 7));
+                    weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+                    
+                    let weekTotal = 0;
+                    for (let j = 0; j < 7; j++) {
+                        const date = new Date(weekStart);
+                        date.setDate(weekStart.getDate() + j);
+                        const payments = this.getPaymentsForDate(date);
+                        weekTotal += payments.reduce((sum, payment) => sum + payment.amount, 0);
+                    }
+                    
+                    if (weekTotal >= weeklyGoal) {
+                        tempStreak++;
+                        if (i === 0) currentStreak = tempStreak;
+                    } else {
+                        maxStreak = Math.max(maxStreak, tempStreak);
+                        tempStreak = 0;
+                    }
+                }
+                
+                maxStreak = Math.max(maxStreak, tempStreak);
+                
+                container.innerHTML = `
+                    <div class="streak-item">
+                        <span class="streak-label">Current Streak:</span>
+                        <span class="streak-value">${currentStreak} weeks</span>
+                    </div>
+                    <div class="streak-item">
+                        <span class="streak-label">Best Streak:</span>
+                        <span class="streak-value">${maxStreak} weeks</span>
+                    </div>
+                `;
+            }
+
+            updateGoalRecommendations() {
+                const container = document.getElementById('goalRecommendations');
+                if (!container) return;
+                
+                const weeklyData = this.getWeeklyTrendData();
+                
+                const recommendations = [];
+                
+                if (weeklyData.length > 0) {
+                    const avgWeekly = weeklyData.reduce((sum, week) => sum + week.amount, 0) / weeklyData.length;
+                    const recommendedGoal = Math.ceil(avgWeekly * 1.1 / 10) * 10; // 10% increase, rounded to nearest 10
+                    
+                    recommendations.push(`Consider setting a weekly goal of $${recommendedGoal} based on your average performance.`);
+                }
+                
+                const currentWeekTotal = this.getCurrentWeekTotal();
+                const settings = this.getUserSettings();
+                const weeklyGoal = settings.weeklyGoals || 0;
+                
+                if (weeklyGoal > 0 && currentWeekTotal < weeklyGoal * 0.5) {
+                    const remaining = weeklyGoal - currentWeekTotal;
+                    const daysLeft = 7 - new Date().getDay();
+                    const dailyTarget = remaining / Math.max(daysLeft, 1);
+                    
+                    recommendations.push(`You need $${dailyTarget.toFixed(0)} per day for the rest of the week to reach your goal.`);
+                }
+                
+                // Third suggestion: Mobile-Responsive Design & PWA
+                const isMobile = window.innerWidth <= 768;
+                const isPWAInstalled = window.matchMedia('(display-mode: standalone)').matches;
+                
+                if (isMobile && !isPWAInstalled) {
+                    recommendations.push('Install this app on your mobile device for better tracking on-the-go. Look for "Add to Home Screen" in your browser menu.');
+                } else if (!isMobile) {
+                    recommendations.push('Access your payment tracker on mobile for convenient logging while on the road. The app is fully responsive and works great on all devices.');
+                } else {
+                    recommendations.push('Great! You\'re using the mobile-optimized version. Consider enabling offline mode for tracking payments without internet connection.');
+                }
+                
+                if (recommendations.length === 0) {
+                    recommendations.push('Keep tracking your payments to get personalized recommendations!');
+                }
+                
+                container.innerHTML = recommendations.map(rec => `
+                    <div class="recommendation-item">${rec}</div>
+                `).join('');
+            }
+
+
+        }
+
+
+
+        // Global function to apply custom logo
+        function applyCustomLogo() {
+            const customLogo = localStorage.getItem('customLogo');
+            if (customLogo) {
+                const logoElements = document.querySelectorAll('img[src="logo.svg"], img[src*="logo"]');
+                logoElements.forEach(img => {
+                    img.src = customLogo;
+                });
+            }
+        }
+
+        // Initialize the calendar when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.paymentCalendar = new PaymentCalendar();
+            window.paymentCalendar.initializeAnalytics();
+            applyCustomLogo();
+        });
+        
+        // Apply custom logo when page becomes visible
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                applyCustomLogo();
+            }
+        });
+    </script>
+</body>
+</html>

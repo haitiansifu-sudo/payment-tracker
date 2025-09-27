@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none';">
+    <title>Payment Tracker - Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .auth-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            width: 100%;
+            max-width: 400px;
+            animation: slideUp 0.6s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .auth-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .auth-header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .auth-header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        .auth-content {
+            padding: 40px 30px;
+        }
+
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            background: #f8f9fa;
+            padding: 5px;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .auth-tab.active {
+            background: white;
+            color: #4facfe;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .form-group input:invalid {
+            border-color: #dc3545;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+                align-items: flex-start !important;
+                padding-top: 20px;
+                flex-direction: column;
+            }
+
+            .auth-container {
+                max-width: 100%;
+                margin: 0;
+                order: 1;
+            }
+
+            .auth-header {
+                padding: 20px;
+            }
+
+            .auth-header h1 {
+                font-size: 24px;
+            }
+
+            .auth-content {
+                padding: 20px 15px;
+            }
+
+            .form-group input {
+                padding: 12px;
+                font-size: 16px;
+            }
+
+            .btn {
+                padding: 12px;
+                font-size: 16px;
+            }
+
+            .user-item {
+                padding: 10px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .user-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .auth-header {
+                padding: 15px;
+            }
+
+            .auth-header h1 {
+                font-size: 20px;
+            }
+
+            .auth-header p {
+                font-size: 14px;
+            }
+
+            .auth-content {
+                padding: 15px 10px;
+            }
+
+            .auth-tab {
+                padding: 10px 8px;
+                font-size: 14px;
+            }
+
+            .form-group input {
+                padding: 10px;
+                font-size: 14px;
+            }
+
+            .btn {
+                padding: 10px;
+                font-size: 14px;
+            }
+
+            .user-item {
+                padding: 8px;
+            }
+
+            .btn-small {
+                padding: 4px 8px;
+                font-size: 11px;
+            }
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .user-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .user-item {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-item:last-child {
+            border-bottom: none;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .user-email {
+            font-size: 14px;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-login {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-small:hover {
+            transform: translateY(-1px);
+        }
+
+        .admin-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .admin-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-header">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px;">
+                <img src="logo.svg" alt="Payment Tracker Logo" style="width: 43px; height: 43px;">
+                <h1 style="margin: 0;">Payment Tracker</h1>
+            </div>
+            <p>Manage your payments with ease</p>
+        </div>
+        
+        <div class="auth-content">
+            <div class="auth-tabs">
+                <div class="auth-tab active" data-tab="login">Login</div>
+                <div class="auth-tab" data-tab="register">Register</div>
+                <div class="auth-tab" data-tab="manage">Manage</div>
+            </div>
+
+            <div class="error-message" id="errorMessage"></div>
+            <div class="success-message" id="successMessage"></div>
+
+            <!-- Login Form -->
+            <form class="auth-form active" id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail">Email:</label>
+                    <input type="email" id="loginEmail" placeholder="Email" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password:</label>
+                    <input type="password" id="loginPassword" placeholder="Password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Login</button>
+            </form>
+
+            <!-- Register Form -->
+            <form class="auth-form" id="registerForm">
+                <div class="form-group">
+                    <label for="registerName">Full Name:</label>
+                    <input type="text" id="registerName" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerEmail">Email:</label>
+                    <input type="email" id="registerEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">Password:</label>
+                    <input type="password" id="registerPassword" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password:</label>
+                    <input type="password" id="confirmPassword" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="registrationKey">Registration Key:</label>
+                    <input type="text" id="registrationKey" required placeholder="Enter registration key">
+                </div>
+                <button type="submit" class="btn btn-primary">Register</button>
+            </form>
+
+            <!-- Manage Users Form - Admin Login -->
+            <form class="auth-form" id="manageForm">
+                <div class="admin-section">
+                    <div class="admin-title">Admin Login</div>
+                    <p style="text-align: center; color: #666; margin-bottom: 20px;">Please login with admin credentials to access the management panel.</p>
+                    
+                    <div class="form-group">
+                        <label for="adminEmail">Admin Email:</label>
+                        <input type="email" id="adminEmail" placeholder="Enter admin email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="adminPassword">Admin Password:</label>
+                        <input type="password" id="adminPassword" placeholder="Enter admin password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Access Admin Panel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        class AuthSystem {
+            constructor() {
+                this.users = this.loadUsers();
+                this.currentUser = this.getCurrentUser();
+                this.sessionTimeout = 30 * 60 * 1000; // 30 minutes
+                
+                this.initializeElements();
+                this.bindEvents();
+                this.initializeSecurity();
+                
+                // Redirect if already logged in
+                if (this.currentUser) {
+                    this.validateSession();
+                }
+            }
+
+            initializeElements() {
+                this.tabs = document.querySelectorAll('.auth-tab');
+                this.forms = document.querySelectorAll('.auth-form');
+                this.errorMessage = document.getElementById('errorMessage');
+                this.successMessage = document.getElementById('successMessage');
+            }
+
+            bindEvents() {
+                // Tab switching
+                this.tabs.forEach(tab => {
+                    tab.addEventListener('click', () => this.switchTab(tab.dataset.tab));
+                });
+
+                // Form submissions
+                document.getElementById('loginForm').addEventListener('submit', (e) => this.handleLogin(e));
+                document.getElementById('registerForm').addEventListener('submit', (e) => this.handleRegister(e));
+                document.getElementById('manageForm').addEventListener('submit', (e) => this.handleAdminLogin(e));
+            }
+
+            switchTab(tabName) {
+                // Clear active states first
+                this.tabs.forEach(tab => tab.classList.remove('active'));
+                this.forms.forEach(form => form.classList.remove('active'));
+                
+                document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+                document.getElementById(`${tabName}Form`).classList.add('active');
+                
+                this.clearMessages();
+            }
+
+            handleLogin(e) {
+                e.preventDefault();
+                
+                const email = this.sanitizeInput(document.getElementById('loginEmail').value);
+                const password = document.getElementById('loginPassword').value;
+                
+                if (!this.validateEmail(email)) {
+                    this.showError('Invalid email format');
+                    return;
+                }
+                
+                const hashedPassword = this.hashPassword(password);
+                const user = this.users.find(u => u.email === email && u.password === hashedPassword);
+                
+                if (user) {
+                    if (user.approved === false) {
+                        this.showError('Your account is pending admin approval. Please contact the administrator.');
+                        return;
+                    }
+                    this.setCurrentUser(user);
+                    this.showSuccess('Login successful! Redirecting...');
+                    setTimeout(() => this.redirectToCalendar(), 1500);
+                } else {
+                    this.showError('Invalid email or password');
+                }
+            }
+
+            handleRegister(e) {
+                e.preventDefault();
+                
+                const name = this.sanitizeInput(document.getElementById('registerName').value);
+                const email = this.sanitizeInput(document.getElementById('registerEmail').value);
+                const password = document.getElementById('registerPassword').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                const registrationKey = this.sanitizeInput(document.getElementById('registrationKey').value);
+                
+                if (!this.validateEmail(email)) {
+                    this.showError('Invalid email format');
+                    return;
+                }
+                
+                if (!this.validatePassword(password)) {
+                    this.showError('Password must be at least 8 characters long and contain uppercase, lowercase, number, and special character');
+                    return;
+                }
+                
+                if (!this.validateRegistrationKey(registrationKey)) {
+                    this.showError('Invalid registration key');
+                    return;
+                }
+                
+                if (password !== confirmPassword) {
+                    this.showError('Passwords do not match');
+                    return;
+                }
+                
+                if (this.users.find(u => u.email === email)) {
+                    this.showError('Email already exists');
+                    return;
+                }
+                
+                const newUser = {
+                    id: Date.now().toString(),
+                    name: this.escapeHtml(name),
+                    email: email,
+                    password: this.hashPassword(password),
+                    approved: false,
+                    createdAt: new Date().toISOString(),
+                    settings: {
+                        theme: 'light',
+                        notifications: true,
+                        currency: 'USD',
+                        dateFormat: 'MM/DD/YYYY'
+                    }
+                };
+                
+                this.users.push(newUser);
+                this.saveUsers();
+                
+                this.showSuccess('Registration successful! Please wait for admin approval before you can login.');
+                document.getElementById('registerForm').reset();
+                setTimeout(() => this.switchTab('login'), 2000);
+            }
+
+            handleAdminLogin(e) {
+                e.preventDefault();
+                
+                const email = this.sanitizeInput(document.getElementById('adminEmail').value);
+                const password = document.getElementById('adminPassword').value;
+                
+                if (!this.validateEmail(email)) {
+                    this.showError('Invalid email format');
+                    return;
+                }
+                
+                // Reload users to ensure we have the latest data
+                this.users = this.loadUsers();
+                
+                const hashedPassword = this.hashPassword(password);
+                console.log('Login attempt:', { email, hashedPassword });
+                
+                const user = this.users.find(u => u.email === email && u.role === 'admin');
+                console.log('Found admin user:', user ? { email: user.email, storedHash: user.password } : 'No admin user found');
+                
+                if (user && user.password === hashedPassword) {
+                    this.setCurrentUser(user);
+                    this.showSuccess('Admin login successful! Redirecting to admin panel...');
+                    setTimeout(() => this.redirectToAdmin(), 1500);
+                } else {
+                    console.log('Login failed - Hash mismatch or user not found');
+                    this.showError('Invalid admin credentials');
+                }
+            }
+
+            // User management methods moved to admin.html
+
+            setCurrentUser(user) {
+                const sessionData = {
+                    ...user,
+                    sessionStart: Date.now(),
+                    lastActivity: Date.now()
+                };
+                localStorage.setItem('currentUser', JSON.stringify(sessionData));
+                this.currentUser = sessionData;
+            }
+
+            getCurrentUser() {
+                const saved = localStorage.getItem('currentUser');
+                return saved ? JSON.parse(saved) : null;
+            }
+
+            loadUsers() {
+                const saved = localStorage.getItem('calendarUsers');
+                return saved ? JSON.parse(saved) : [];
+            }
+
+            saveUsers() {
+                const sanitizedUsers = this.users.map(user => this.sanitizeUserData(user));
+                localStorage.setItem('calendarUsers', JSON.stringify(sanitizedUsers));
+            }
+
+            redirectToCalendar() {
+                window.location.href = 'calendar-app.html';
+            }
+
+            redirectToAdmin() {
+                window.location.href = 'admin.html';
+            }
+
+            showError(message) {
+                this.errorMessage.textContent = message;
+                this.errorMessage.style.display = 'block';
+                this.successMessage.style.display = 'none';
+            }
+
+            showSuccess(message) {
+                this.successMessage.textContent = message;
+                this.successMessage.style.display = 'block';
+                this.errorMessage.style.display = 'none';
+            }
+
+            clearMessages() {
+                this.errorMessage.style.display = 'none';
+                this.successMessage.style.display = 'none';
+            }
+
+            // Security Methods
+            sanitizeInput(input) {
+                if (typeof input !== 'string') return '';
+                return input.trim().replace(/[<>"'&]/g, function(match) {
+                    const escapeMap = {
+                        '<': '&lt;',
+                        '>': '&gt;',
+                        '"': '&quot;',
+                        "'": '&#x27;',
+                        '&': '&amp;'
+                    };
+                    return escapeMap[match];
+                });
+            }
+
+            escapeHtml(text) {
+                if (typeof text !== 'string') return '';
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            validateEmail(email) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return emailRegex.test(email) && email.length <= 254;
+            }
+
+            validatePassword(password) {
+                if (password.length < 8) return false;
+                const hasUpper = /[A-Z]/.test(password);
+                const hasLower = /[a-z]/.test(password);
+                const hasNumber = /\d/.test(password);
+                const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+                return hasUpper && hasLower && hasNumber && hasSpecial;
+            }
+
+            hashPassword(password) {
+                // Simple hash function for demo purposes
+                // In production, use proper bcrypt or similar
+                let hash = 0;
+                const salt = 'calendar_app_salt_2024';
+                const combined = password + salt;
+                for (let i = 0; i < combined.length; i++) {
+                    const char = combined.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + char;
+                    hash = hash & hash; // Convert to 32-bit integer
+                }
+                return Math.abs(hash).toString(16);
+            }
+
+            initializeSecurity() {
+                // Create default admin account if no users exist
+                const users = this.loadUsers();
+                // Always ensure admin user exists with consistent hash
+                let adminExists = users.find(u => u.role === 'admin' && u.email === 'admin@system.com');
+                
+                if (!adminExists) {
+                    // Use a fixed hash for consistency - this is the hash of 'admin123'
+                    const expectedHash = '1351abad'; // Pre-calculated hash of 'admin123' with salt
+                    const defaultAdmin = {
+                        id: 'admin-001',
+                        name: 'System Administrator',
+                        email: 'admin@system.com',
+                        password: expectedHash,
+                        role: 'admin',
+                        approved: true,
+                        createdAt: new Date().toISOString(),
+                        settings: {
+                            theme: 'light',
+                            notifications: true,
+                            currency: 'USD',
+                            dateFormat: 'MM/DD/YYYY'
+                        }
+                    };
+                    users.push(defaultAdmin);
+                    localStorage.setItem('calendarUsers', JSON.stringify(users));
+                    console.log('Default admin user created with hash:', expectedHash);
+                } else {
+                    // Ensure existing admin has correct hash (fix corruption)
+                    const expectedHash = '1351abad';
+                    if (adminExists.password !== expectedHash) {
+                        console.log('Fixing admin password hash from', adminExists.password, 'to', expectedHash);
+                        adminExists.password = expectedHash;
+                        localStorage.setItem('calendarUsers', JSON.stringify(users));
+                    }
+                }
+                
+                this.users = users;
+                
+                // Set up session monitoring
+                setInterval(() => {
+                    if (this.currentUser) {
+                        this.validateSession();
+                    }
+                }, 60000); // Check every minute
+            }
+
+            validateSession() {
+                if (!this.currentUser || !this.currentUser.sessionStart) {
+                    this.redirectToCalendar();
+                    return;
+                }
+
+                const now = Date.now();
+                const sessionAge = now - this.currentUser.sessionStart;
+                const lastActivity = this.currentUser.lastActivity || this.currentUser.sessionStart;
+                const inactiveTime = now - lastActivity;
+
+                if (sessionAge > this.sessionTimeout || inactiveTime > this.sessionTimeout) {
+                    this.logout();
+                    this.showError('Session expired. Please login again.');
+                    return;
+                }
+
+                // Update last activity
+                this.currentUser.lastActivity = now;
+                localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
+                this.redirectToCalendar();
+            }
+
+            logout() {
+                localStorage.removeItem('currentUser');
+                this.currentUser = null;
+            }
+
+            validateRegistrationKey(key) {
+                if (!key || key.trim() === '') {
+                    return false;
+                }
+                
+                const registrationKeys = this.getRegistrationKeys();
+                // Check if registrationKeys is an array of objects (admin format) or strings (simple format)
+                if (registrationKeys.length > 0 && typeof registrationKeys[0] === 'object') {
+                    // Admin format: array of objects with 'key' property
+                    return registrationKeys.some(keyObj => keyObj.key === key.trim());
+                } else {
+                    // Simple format: array of strings
+                    return registrationKeys.includes(key.trim());
+                }
+            }
+            
+            getRegistrationKeys() {
+                const saved = localStorage.getItem('registrationKeys');
+                return saved ? JSON.parse(saved) : [];
+            }
+
+            sanitizeUserData(user) {
+                return {
+                    id: user.id,
+                    name: this.escapeHtml(user.name || ''),
+                    email: this.sanitizeInput(user.email || ''),
+                    password: user.password, // Already hashed, don't modify
+                    role: user.role || 'user', // Preserve role, especially for admin
+                    approved: Boolean(user.approved),
+                    createdAt: user.createdAt,
+                    sessionStart: user.sessionStart,
+                    lastActivity: user.lastActivity,
+                    settings: user.settings ? {
+                        theme: this.sanitizeInput(user.settings.theme || 'light'),
+                        notifications: Boolean(user.settings.notifications),
+                        currency: this.sanitizeInput(user.settings.currency || 'USD'),
+                        dateFormat: this.sanitizeInput(user.settings.dateFormat || 'MM/DD/YYYY')
+                    } : {
+                        theme: 'light',
+                        notifications: true,
+                        currency: 'USD',
+                        dateFormat: 'MM/DD/YYYY'
+                    }
+                };
+            }
+        }
+
+        // Global function to apply custom logo
+        function applyCustomLogo() {
+            const customLogo = localStorage.getItem('customLogo');
+            if (customLogo) {
+                const logoElements = document.querySelectorAll('img[src="logo.svg"], img[src*="logo"]');
+                logoElements.forEach(img => {
+                    img.src = customLogo;
+                });
+            }
+        }
+
+        // Initialize the authentication system
+        let authSystem;
+        document.addEventListener('DOMContentLoaded', () => {
+            authSystem = new AuthSystem();
+            applyCustomLogo();
+        });
+        
+        // Apply custom logo when page becomes visible
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                applyCustomLogo();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+﻿# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+access.log
+error.log
+
+# Environment and configuration files
+.env
+.env.local
+.env.production
+config.local.ini
+phprc
+
+# Development and testing files
+test-*.html
+debug-*.html
+*.test.php
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Cache and compiled files
+cache/
+tmp/
+temp/
+
+# User uploads and data
+uploads/
+user-data/
+data/
+
+# Composer (if using)
+vendor/
+composer.lock
+
+# Node modules (if using)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+dist/
+build/
+
+# Documentation drafts
+*.draft.md
+NOTES.md
+TODO.md

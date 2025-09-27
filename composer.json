@@ -1,0 +1,70 @@
+{
+    "name": "payment-tracker/web-app",
+    "description": "A web-based payment tracking system with calendar functionality and hourly rate calculations",
+    "type": "project",
+    "version": "1.0.0",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Payment Tracker Developer",
+            "email": "developer@example.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.4"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "PaymentTracker\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "PaymentTracker\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "serve": "php -S localhost:8000 index.php",
+        "deploy-check": [
+            "@composer validate",
+            "@composer install --no-dev --optimize-autoloader"
+        ]
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true,
+        "platform": {
+            "php": "7.4"
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "keywords": [
+        "payment-tracker",
+        "calendar",
+        "hourly-rate",
+        "web-app",
+        "php"
+    ],
+    "homepage": "https://github.com/your-username/payment-tracker",
+    "support": {
+        "issues": "https://github.com/your-username/payment-tracker/issues",
+        "source": "https://github.com/your-username/payment-tracker"
+    },
+    "extra": {
+        "deployment": {
+            "type": "web-application",
+            "entry-point": "index.php",
+            "public-files": [
+                "*.html",
+                "*.svg",
+                "*.css",
+                "*.js"
+            ]
+        }
+    }
+}

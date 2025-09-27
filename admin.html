@@ -1,0 +1,3327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none';">
+    <title>Payment Tracker - Admin Panel</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .admin-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            max-width: 1200px;
+            margin: 0 auto;
+            animation: slideUp 0.6s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .admin-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .admin-header h1 {
+            font-size: 28px;
+        }
+
+        .admin-nav {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .admin-content {
+            padding: 40px;
+        }
+
+        .admin-tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            background: #f8f9fa;
+            padding: 5px;
+        }
+
+        .admin-tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .admin-tab.active {
+            background: white;
+            color: #4facfe;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .admin-panel {
+            display: none;
+        }
+
+        .admin-panel.active {
+            display: block;
+        }
+
+        .user-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+
+        .user-item {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-item:last-child {
+            border-bottom: none;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .user-email {
+            font-size: 14px;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-login {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-small:hover {
+            transform: translateY(-1px);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .system-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .user-details-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .user-details-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .user-details-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .user-details-header h2 {
+            color: #333;
+            font-size: 24px;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            padding: 5px;
+        }
+
+        .close-modal:hover {
+            color: #333;
+        }
+
+        .user-details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .user-details-table th,
+        .user-details-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .user-details-table th {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            font-weight: 600;
+            color: #333;
+        }
+
+        .user-details-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .payment-amount {
+            font-weight: 600;
+            color: #28a745;
+        }
+
+        .payment-amount.zero {
+            color: #6c757d;
+        }
+
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .user-table th,
+        .user-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .user-table th {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            font-weight: 600;
+        }
+
+        .user-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .user-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-edit {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-edit:hover {
+            background: #0056b3;
+            transform: translateY(-1px);
+        }
+
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-delete:hover {
+            background: #c82333;
+            transform: translateY(-1px);
+        }
+
+        .edit-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .edit-modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .edit-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .edit-form label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .edit-form input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .edit-form input:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 2px rgba(79, 172, 254, 0.2);
+        }
+
+        .edit-form-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .btn-save {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-save:hover {
+            background: #218838;
+        }
+
+        .btn-cancel {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-cancel:hover {
+            background: #5a6268;
+        }
+
+        .user-status {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-approved {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .btn-approve {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-approve:hover {
+            background: #218838;
+            transform: translateY(-1px);
+        }
+
+        .btn-reject {
+            background: #ffc107;
+            color: #212529;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-reject:hover {
+            background: #e0a800;
+            transform: translateY(-1px);
+        }
+
+        .approval-requests-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+        }
+
+        .approval-requests-container {
+            margin-top: 15px;
+        }
+
+        .approval-request-card {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .approval-request-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            transform: translateY(-1px);
+        }
+
+        .request-info {
+            flex: 1;
+        }
+
+        .request-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .request-email {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .request-date {
+            color: #999;
+            font-size: 12px;
+        }
+
+        .request-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .no-requests {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .user-management-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .approval-checkbox {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #28a745;
+        }
+
+        .approval-checkbox:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .unapproved-user {
+            background-color: #fff5f5;
+            border-left: 3px solid #dc3545;
+        }
+
+        .unapproved-user td {
+            color: #721c24;
+        }
+
+        .unapproved-user:hover {
+            background-color: #ffeaea;
+        }
+
+        /* Registration Key Management Styles */
+        .key-management-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .key-management-section h4 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+
+        .key-generation-form,
+        .manual-key-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .btn-generate,
+        .btn-add-custom {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            align-self: flex-start;
+        }
+
+        .btn-generate:hover,
+        .btn-add-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+        }
+
+        .generated-key-display {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .key-display-box {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .key-display-box input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            font-family: monospace;
+            font-size: 14px;
+        }
+
+        .btn-copy,
+        .btn-save-key {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-copy:hover,
+        .btn-save-key:hover {
+            background: #218838;
+            transform: translateY(-1px);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 2px rgba(79, 172, 254, 0.2);
+        }
+
+        .keys-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .key-item {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .key-info {
+            flex: 1;
+        }
+
+        .key-value {
+            font-family: monospace;
+            font-size: 14px;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .key-description {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .key-meta {
+            font-size: 11px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .key-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-delete-key {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-delete-key:hover {
+            background: #c82333;
+            transform: translateY(-1px);
+        }
+
+        .no-keys {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 20px;
+        }
+
+        /* Desktop optimizations */
+        @media (min-width: 1200px) {
+            .admin-container {
+                max-width: 1400px;
+                margin: 0 auto;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 25px;
+            }
+
+            .user-table {
+                font-size: 16px;
+            }
+
+            .edit-modal-content {
+                max-width: 600px;
+            }
+        }
+
+        /* Tablet styles */
+        @media (max-width: 1024px) and (min-width: 769px) {
+            .admin-header {
+                padding: 15px;
+            }
+
+            .admin-header h1 {
+                font-size: 24px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+
+            .admin-tabs {
+                justify-content: center;
+                gap: 10px;
+            }
+
+            .admin-tab {
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+
+            .user-table {
+                font-size: 14px;
+            }
+
+            .user-table th,
+            .user-table td {
+                padding: 10px 8px;
+            }
+
+            .edit-modal-content {
+                width: 85%;
+                margin: 5% auto;
+            }
+
+            .btn-small {
+                padding: 5px 10px;
+                font-size: 11px;
+            }
+        }
+
+        /* Mobile styles */
+        @media (max-width: 768px) {
+            .admin-header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+                padding: 15px;
+            }
+
+            .admin-header h1 {
+                font-size: 22px;
+            }
+
+            .admin-nav {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 10px;
+            }
+
+            .nav-btn {
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+
+            .admin-content {
+                padding: 20px;
+            }
+
+            .admin-tabs {
+                flex-direction: column;
+                gap: 5px;
+                margin-bottom: 20px;
+            }
+
+            .admin-tab {
+                padding: 12px;
+                text-align: center;
+                font-size: 14px;
+                border-radius: 8px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+                margin-bottom: 20px;
+            }
+
+            .stat-card {
+                padding: 15px;
+                text-align: center;
+            }
+
+            .stat-number {
+                font-size: 24px;
+            }
+
+            /* Mobile table wrapper for horizontal scroll */
+             .table-wrapper {
+                 overflow-x: auto;
+                 -webkit-overflow-scrolling: touch;
+                 margin: 0 -10px;
+                 padding: 0 10px;
+                 border-radius: 8px;
+                 box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+             }
+
+            .user-table {
+                min-width: 600px;
+                font-size: 12px;
+            }
+
+            .user-table th,
+            .user-table td {
+                padding: 8px 4px;
+                white-space: nowrap;
+            }
+
+            .user-table th:first-child,
+            .user-table td:first-child {
+                position: sticky;
+                left: 0;
+                background: white;
+                z-index: 1;
+                box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            }
+
+            .user-status {
+                font-size: 10px;
+                padding: 2px 6px;
+            }
+
+            .btn-approve,
+            .btn-reject,
+            .btn-edit,
+            .btn-delete {
+                padding: 4px 8px;
+                font-size: 10px;
+                margin: 1px;
+            }
+
+            .user-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .user-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+
+            .user-details-content {
+                margin: 2% auto;
+                padding: 20px;
+                width: 95%;
+                max-height: 80vh;
+                overflow-y: auto;
+            }
+
+            .user-details-table {
+                font-size: 12px;
+                min-width: 500px;
+            }
+
+            .user-details-table th,
+            .user-details-table td {
+                padding: 8px 4px;
+            }
+
+            .edit-modal-content {
+                width: 95%;
+                margin: 10% auto;
+                padding: 15px;
+                max-height: 80vh;
+                overflow-y: auto;
+            }
+
+            .edit-form input {
+                font-size: 16px; /* Prevents zoom on iOS */
+                padding: 12px;
+            }
+
+            .edit-form-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .btn-save,
+            .btn-cancel {
+                width: 100%;
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+        }
+
+        /* Extra small mobile devices */
+        @media (max-width: 480px) {
+            .admin-header {
+                padding: 10px;
+            }
+
+            .admin-header h1 {
+                font-size: 20px;
+            }
+
+            .admin-tab {
+                padding: 10px;
+                font-size: 13px;
+            }
+
+            .stat-card {
+                padding: 12px;
+            }
+
+            .stat-number {
+                font-size: 20px;
+            }
+
+            .user-table {
+                font-size: 11px;
+            }
+
+            .edit-modal-content {
+                width: 98%;
+                margin: 5% auto;
+                padding: 12px;
+            }
+
+            .edit-form input {
+                padding: 10px;
+            }
+        }
+
+        /* Logo Management Styles */
+        .logo-management-form {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .logo-requirements {
+            margin-bottom: 20px;
+        }
+
+        .logo-requirements h5 {
+            color: #495057;
+            margin-bottom: 10px;
+        }
+
+        .logo-requirements ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .logo-requirements li {
+            margin-bottom: 5px;
+            color: #6c757d;
+        }
+
+        .current-logo-section,
+        .logo-upload-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+
+        .logo-preview-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .logo-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-remove-logo {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-remove-logo:hover {
+            background: #c82333;
+        }
+
+        .file-upload-help {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .logo-preview-section {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .logo-upload-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-upload-logo {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-upload-logo:hover {
+            background: #218838;
+        }
+
+        .btn-cancel-upload {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-cancel-upload:hover {
+            background: #5a6268;
+        }
+
+        #logoFileInput {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+
+        /* Update Management Styles */
+        .update-upload-form {
+            margin-top: 15px;
+        }
+
+        .update-requirements {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid #007bff;
+        }
+
+        .update-requirements h5 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .update-requirements ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .update-requirements li {
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        .update-preview-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 6px;
+            margin-top: 15px;
+            border: 1px solid #dee2e6;
+        }
+
+        .update-info {
+            background: white;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            border: 1px solid #e9ecef;
+        }
+
+        .update-upload-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-upload-update {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-upload-update:hover {
+            background: #218838;
+        }
+
+        .btn-upload-update:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .update-history {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .update-history-item {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border: 1px solid #e9ecef;
+            border-left: 4px solid #007bff;
+        }
+
+        .update-version {
+            font-weight: 600;
+            color: #007bff;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .update-date {
+            color: #6c757d;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .update-description {
+            color: #333;
+            line-height: 1.4;
+        }
+
+        #updateFileInput {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            background: white;
+        }
+
+        .update-status-success {
+            color: #28a745 !important;
+        }
+
+        .update-status-warning {
+            color: #ffc107 !important;
+        }
+
+        .update-status-error {
+            color: #dc3545 !important;
+        }
+
+        /* Monitoring Panel Styles */
+        .monitoring-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .monitoring-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid #e9ecef;
+        }
+
+        .monitoring-section h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+            border-bottom: 2px solid #4facfe;
+            padding-bottom: 10px;
+        }
+
+        .health-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .metric-icon {
+            font-size: 24px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border-radius: 50%;
+        }
+
+        .metric-info {
+            flex: 1;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .metric-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .error-log-container {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .log-controls {
+            padding: 15px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            gap: 10px;
+        }
+
+        .error-log {
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .log-entry {
+            display: flex;
+            gap: 15px;
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-time {
+            color: #666;
+            min-width: 130px;
+        }
+
+        .log-level {
+            min-width: 60px;
+            font-weight: 600;
+        }
+
+        .log-info .log-level {
+            color: #17a2b8;
+        }
+
+        .log-warning .log-level {
+            color: #ffc107;
+        }
+
+        .log-error .log-level {
+            color: #dc3545;
+        }
+
+        .log-message {
+            flex: 1;
+            color: #333;
+        }
+
+        .performance-charts {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .chart-container h4 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .simple-chart {
+            display: flex;
+            align-items: end;
+            gap: 8px;
+            height: 150px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .chart-bar {
+            flex: 1;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border-radius: 4px 4px 0 0;
+            min-height: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .chart-bar:hover {
+            opacity: 0.8;
+        }
+
+        .data-management {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .data-export, .data-import, .backup-restore {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .data-export h4, .data-import h4, .backup-restore h4 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 16px;
+            border-bottom: 1px solid #e9ecef;
+            padding-bottom: 8px;
+        }
+
+        .export-options, .import-section, .backup-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .import-status, .backup-status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .import-status.success, .backup-status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .import-status.error, .backup-status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .health-metrics {
+                grid-template-columns: 1fr;
+            }
+
+            .data-management {
+                grid-template-columns: 1fr;
+            }
+
+            .metric-card {
+                padding: 15px;
+            }
+
+            .monitoring-section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <div class="admin-header">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <img src="logo.svg" alt="Payment Tracker Logo" style="width: 38px; height: 38px;">
+                <h1 style="margin: 0;">Admin Panel</h1>
+            </div>
+            <div class="admin-nav">
+                <a href="calendar-app.html" class="nav-btn">Calendar</a>
+                <a href="login.html" class="nav-btn">Login</a>
+                <button class="nav-btn" onclick="adminSystem.logout()">Logout</button>
+            </div>
+        </div>
+        
+        <div class="admin-content">
+            <div class="admin-tabs">
+                <div class="admin-tab active" data-tab="dashboard">📊 Dashboard</div>
+                <div class="admin-tab" data-tab="users">👥 Users</div>
+                <div class="admin-tab" data-tab="management">⚙️ User Management</div>
+                <div class="admin-tab" data-tab="registration-keys">🔑 Registration Keys</div>
+                <div class="admin-tab" data-tab="updates">🔄 Updates</div>
+                <div class="admin-tab" data-tab="monitoring">📊 Monitoring</div>
+                <div class="admin-tab" data-tab="system">ℹ️ System Info</div>
+            </div>
+
+            <div class="error-message" id="errorMessage"></div>
+            <div class="success-message" id="successMessage"></div>
+
+            <!-- Dashboard Panel -->
+            <div class="admin-panel active" id="dashboardPanel">
+                <div class="stats-grid">
+                    <div class="stat-card" style="cursor: pointer;" onclick="adminSystem.showUserDetails()">
+                        <div class="stat-number" id="totalUsers">0</div>
+                        <div class="stat-label">Total Users</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="activeUsers">0</div>
+                        <div class="stat-label">Active Sessions</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalPayments">0</div>
+                        <div class="stat-label">Total Payments</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Panel -->
+            <div class="admin-panel" id="usersPanel">
+                <!-- Approval Requests Section -->
+                <div class="approval-requests-section" id="approvalRequestsSection">
+                    <h3>Pending Approval Requests</h3>
+                    <div class="approval-requests-container" id="approvalRequestsContainer">
+                        <p class="no-requests" id="noRequestsMessage">No pending approval requests</p>
+                    </div>
+                </div>
+
+                <!-- User Management Section -->
+                <div class="user-management-section">
+                    <h3>User Management</h3>
+                    <div class="table-wrapper">
+                        <div id="userListTable">
+                            <!-- User table will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Management Panel -->
+            <div class="admin-panel" id="managementPanel">
+                <h3>User Management</h3>
+                <div id="userList" class="user-list">
+                    <!-- Users will be populated here -->
+                </div>
+            </div>
+
+            <!-- Registration Keys Panel -->
+            <div class="admin-panel" id="registration-keysPanel">
+                <h3>Registration Key Management</h3>
+                
+                <!-- Key Generation Section -->
+                <div class="key-management-section">
+                    <h4>Generate New Registration Key</h4>
+                    <div class="key-generation-form">
+                        <button class="btn-generate" onclick="adminSystem.generateRegistrationKey()">Generate Random Key</button>
+                        <div class="generated-key-display" id="generatedKeyDisplay" style="display: none;">
+                            <label>Generated Key:</label>
+                            <div class="key-display-box">
+                                <input type="text" id="generatedKeyInput" readonly>
+                                <button class="btn-copy" onclick="adminSystem.copyKey('generatedKeyInput')">Copy</button>
+                            </div>
+                            <button class="btn-save-key" onclick="adminSystem.saveGeneratedKey()">Save Key</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Manual Key Entry Section -->
+                <div class="key-management-section">
+                    <h4>Add Custom Registration Key</h4>
+                    <div class="manual-key-form">
+                        <div class="form-group">
+                            <label for="customKeyInput">Custom Key:</label>
+                            <input type="text" id="customKeyInput" placeholder="Enter custom registration key" maxlength="50">
+                        </div>
+                        <div class="form-group">
+                            <label for="keyDescriptionInput">Description (optional):</label>
+                            <input type="text" id="keyDescriptionInput" placeholder="Key description or purpose" maxlength="100">
+                        </div>
+                        <button class="btn-add-custom" onclick="adminSystem.addCustomKey()">Add Custom Key</button>
+                    </div>
+                </div>
+
+                <!-- Logo Management Section -->
+                <div class="key-management-section">
+                    <h4>Logo Management</h4>
+                    <div class="logo-management-form">
+                        <div class="logo-requirements">
+                            <h5>Logo Requirements:</h5>
+                            <ul>
+                                <li><strong>Format:</strong> SVG (Scalable Vector Graphics) recommended</li>
+                                <li><strong>Alternative formats:</strong> PNG, JPG, GIF</li>
+                                <li><strong>Recommended size:</strong> 64x64 pixels or larger</li>
+                                <li><strong>Max file size:</strong> 2MB</li>
+                                <li><strong>Aspect ratio:</strong> Square (1:1) preferred</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="current-logo-section">
+                            <h5>Current Logo:</h5>
+                            <div class="logo-preview-container">
+                                <img id="currentLogoPreview" src="logo.svg" alt="Current Logo" style="width: 64px; height: 64px; border: 1px solid #ddd; border-radius: 4px;">
+                                <div class="logo-info">
+                                    <span id="currentLogoName">logo.svg</span>
+                                    <button class="btn-remove-logo" onclick="adminSystem.removeLogo()" style="margin-left: 10px;">Remove Logo</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="logo-upload-section">
+                            <h5>Upload New Logo:</h5>
+                            <div class="form-group">
+                                <input type="file" id="logoFileInput" accept=".svg,.png,.jpg,.jpeg,.gif" onchange="adminSystem.previewLogo(this)">
+                                <div class="file-upload-help">Select an SVG, PNG, JPG, or GIF file</div>
+                            </div>
+                            
+                            <div class="logo-preview-section" id="logoPreviewSection" style="display: none;">
+                                <h6>Preview:</h6>
+                                <img id="logoPreview" style="width: 64px; height: 64px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 10px;">
+                                <div class="logo-upload-actions">
+                                    <button class="btn-upload-logo" onclick="adminSystem.uploadLogo()">Upload Logo</button>
+                                    <button class="btn-cancel-upload" onclick="adminSystem.cancelLogoUpload()">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Existing Keys Section -->
+                <div class="key-management-section">
+                    <h4>Existing Registration Keys</h4>
+                    <div class="keys-list" id="keysList">
+                        <!-- Keys will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Updates Panel -->
+            <div class="admin-panel" id="updatesPanel">
+                <h3>Update Management</h3>
+                
+                <!-- Current Version Section -->
+                <div class="key-management-section">
+                    <h4>Current Version Information</h4>
+                    <div class="system-info">
+                        <div class="info-row">
+                            <span>Current Version:</span>
+                            <span id="currentVersion">1.0.0</span>
+                        </div>
+                        <div class="info-row">
+                            <span>Last Update:</span>
+                            <span id="lastUpdateDate">Never</span>
+                        </div>
+                        <div class="info-row">
+                            <span>Update Status:</span>
+                            <span id="updateStatus" style="color: #28a745;">✓ Up to date</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upload Update Section -->
+                <div class="key-management-section">
+                    <h4>Upload New Update</h4>
+                    <div class="update-upload-form">
+                        <div class="update-requirements">
+                            <h5>Update Requirements:</h5>
+                            <ul>
+                                <li><strong>Format:</strong> ZIP file containing update files</li>
+                                <li><strong>Size:</strong> Maximum 50MB</li>
+                                <li><strong>Contents:</strong> Must include version.json with version information</li>
+                                <li><strong>Security:</strong> Files will be validated before installation</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="updateFileInput">Select Update File:</label>
+                            <input type="file" id="updateFileInput" accept=".zip" onchange="adminSystem.previewUpdate(event)">
+                        </div>
+                        
+                        <div class="update-preview-section" id="updatePreviewSection" style="display: none;">
+                            <h6>Update Preview:</h6>
+                            <div class="update-info" id="updateInfo">
+                                <!-- Update information will be displayed here -->
+                            </div>
+                            <div class="update-upload-actions">
+                                <button class="btn-upload-update" onclick="adminSystem.uploadUpdate()">Install Update</button>
+                                <button class="btn-cancel-upload" onclick="adminSystem.cancelUpdateUpload()">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Update History Section -->
+                <div class="key-management-section">
+                    <h4>Update History</h4>
+                    <div class="update-history" id="updateHistory">
+                        <div class="update-history-item">
+                            <div class="update-version">v1.0.0</div>
+                            <div class="update-date">Initial Release</div>
+                            <div class="update-description">First version of the Payment Tracker application</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monitoring Panel -->
+            <div class="admin-panel" id="monitoringPanel">
+                <div class="monitoring-container">
+                    <!-- System Health Dashboard -->
+                    <div class="monitoring-section">
+                        <h3>System Health Dashboard</h3>
+                        <div class="health-metrics">
+                            <div class="metric-card">
+                                <div class="metric-icon">💓</div>
+                                <div class="metric-info">
+                                    <div class="metric-label">System Status</div>
+                                    <div class="metric-value" id="systemStatus">Online</div>
+                                </div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-icon">🖥️</div>
+                                <div class="metric-info">
+                                    <div class="metric-label">CPU Usage</div>
+                                    <div class="metric-value" id="cpuUsage">Loading...</div>
+                                </div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-icon">💾</div>
+                                <div class="metric-info">
+                                    <div class="metric-label">Memory Usage</div>
+                                    <div class="metric-value" id="memoryUsage">Loading...</div>
+                                </div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-icon">📊</div>
+                                <div class="metric-info">
+                                    <div class="metric-label">Response Time</div>
+                                    <div class="metric-value" id="responseTime">Loading...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Error Logging Section -->
+                    <div class="monitoring-section">
+                        <h3>Error Monitoring</h3>
+                        <div class="error-log-container">
+                            <div class="log-controls">
+                                <button class="btn-secondary" onclick="monitoringSystem.clearErrorLog()">Clear Log</button>
+                                <button class="btn-secondary" onclick="monitoringSystem.refreshErrorLog()">Refresh</button>
+                            </div>
+                            <div class="error-log" id="errorLog">
+                                <div class="log-entry log-info">
+                                    <span class="log-time">2024-01-15 10:30:00</span>
+                                    <span class="log-level">INFO</span>
+                                    <span class="log-message">System started successfully</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Performance Analytics -->
+                    <div class="monitoring-section">
+                        <h3>Performance Analytics</h3>
+                        <div class="performance-charts">
+                            <div class="chart-container">
+                                <h4>Request Volume (Last 24h)</h4>
+                                <div class="simple-chart" id="requestChart">
+                                    <div class="chart-bar" style="height: 60%;"></div>
+                                    <div class="chart-bar" style="height: 80%;"></div>
+                                    <div class="chart-bar" style="height: 45%;"></div>
+                                    <div class="chart-bar" style="height: 90%;"></div>
+                                    <div class="chart-bar" style="height: 70%;"></div>
+                                    <div class="chart-bar" style="height: 55%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Data Management Section -->
+                    <div class="monitoring-section">
+                        <h3>Data Management</h3>
+                        <div class="data-management">
+                            <div class="data-export">
+                                <h4>Export Data</h4>
+                                <div class="export-options">
+                                    <button class="btn-primary" onclick="dataManager.exportUsers('csv')">Export Users (CSV)</button>
+                                    <button class="btn-primary" onclick="dataManager.exportUsers('excel')">Export Users (Excel)</button>
+                                    <button class="btn-primary" onclick="dataManager.exportPayments('csv')">Export Payments (CSV)</button>
+                                </div>
+                            </div>
+                            
+                            <div class="data-import">
+                                <h4>Import Data</h4>
+                                <div class="import-section">
+                                    <input type="file" id="importFile" accept=".csv,.xlsx" style="display: none;">
+                                    <button class="btn-secondary" onclick="document.getElementById('importFile').click()">Select File</button>
+                                    <button class="btn-primary" onclick="dataManager.importData()">Import Data</button>
+                                    <div class="import-status" id="importStatus"></div>
+                                </div>
+                            </div>
+
+                            <div class="backup-restore">
+                                <h4>Backup & Restore</h4>
+                                <div class="backup-options">
+                                    <button class="btn-success" onclick="dataManager.createBackup()">Create Backup</button>
+                                    <button class="btn-warning" onclick="dataManager.restoreBackup()">Restore Backup</button>
+                                    <div class="backup-status" id="backupStatus"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Info Panel -->
+            <div class="admin-panel" id="systemPanel">
+                <h3>System Information</h3>
+                <div class="system-info">
+                    <div class="info-row">
+                        <span>Application Version:</span>
+                        <span>1.0.0</span>
+                    </div>
+                    <div class="info-row">
+                        <span>Last Updated:</span>
+                        <span id="lastUpdated"></span>
+                    </div>
+                    <div class="info-row">
+                        <span>Database Size:</span>
+                        <span id="dbSize"></span>
+                    </div>
+                    <div class="info-row">
+                        <span>Security Status:</span>
+                        <span style="color: #28a745;">✓ Secure</span>
+                    </div>
+                    <div class="info-row">
+                        <span>Server Name:</span>
+                        <span id="serverName">Loading...</span>
+                    </div>
+                    <div class="info-row">
+                        <span>Machine Name:</span>
+                        <span id="machineName">Loading...</span>
+                    </div>
+                    <div class="info-row">
+                        <span>Operating System:</span>
+                        <span id="operatingSystem">Loading...</span>
+                    </div>
+                    <div class="info-row">
+                        <span>Server Port:</span>
+                        <span id="serverPort">8000</span>
+                    </div>
+                </div>
+                
+                <h3 style="margin-top: 30px;">Default Admin Credentials</h3>
+                <div class="system-info">
+                    <div class="info-row">
+                        <span>Email:</span>
+                        <span>admin@system.com</span>
+                    </div>
+                    <div class="info-row">
+                        <span>Password:</span>
+                        <span>admin123</span>
+                    </div>
+                    <div style="padding: 15px; background: #fff3cd; color: #856404; border-radius: 8px; margin-top: 15px; font-size: 14px;">
+                        <strong>Note:</strong> Change these credentials after first login for security.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Details Modal -->
+    <div id="userDetailsModal" class="user-details-modal">
+        <div class="user-details-content">
+            <div class="user-details-header">
+                <h2>User Payment Details</h2>
+                <button class="close-modal" onclick="adminSystem.closeUserDetails()">&times;</button>
+            </div>
+            <div id="userDetailsContent">
+                <!-- User details table will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div id="editUserModal" class="edit-modal">
+        <div class="edit-modal-content">
+            <h2>Edit User</h2>
+            <form class="edit-form" id="editUserForm">
+                <label for="editUserName">Name:</label>
+                <input type="text" id="editUserName" required>
+                
+                <label for="editUserEmail">Email:</label>
+                <input type="email" id="editUserEmail" required>
+                
+                <label for="editUserPassword">Password (leave blank to keep current):</label>
+                <input type="password" id="editUserPassword">
+                
+                <div class="edit-form-buttons">
+                    <button type="button" class="btn-cancel" onclick="adminSystem.closeEditModal()">Cancel</button>
+                    <button type="submit" class="btn-save">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        class AdminSystem {
+            constructor() {
+                this.users = this.loadUsers();
+                this.currentUser = this.getCurrentUser();
+                
+                this.initializeElements();
+                this.bindEvents();
+                
+                // Check admin access before initializing admin features
+                if (!this.checkAdminAccess()) {
+                    return; // Stop initialization if access denied
+                }
+                
+                this.loadDashboard();
+                this.renderUserList();
+                this.loadSystemInfo();
+            }
+
+            initializeElements() {
+                this.tabs = document.querySelectorAll('.admin-tab');
+                this.panels = document.querySelectorAll('.admin-panel');
+                this.errorMessage = document.getElementById('errorMessage');
+                this.successMessage = document.getElementById('successMessage');
+                this.userList = document.getElementById('userList');
+            }
+
+            bindEvents() {
+                this.tabs.forEach(tab => {
+                    tab.addEventListener('click', () => this.switchTab(tab.dataset.tab));
+                });
+            }
+
+            checkAdminAccess() {
+                if (!this.currentUser) {
+                    this.showError('Access denied. Please login first.');
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 2000);
+                    return false;
+                }
+                
+                if (this.currentUser.role !== 'admin') {
+                    this.showError('Access denied. Admin privileges required.');
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 2000);
+                    return false;
+                }
+                
+                return true;
+            }
+
+            switchTab(tabName) {
+                this.tabs.forEach(tab => tab.classList.remove('active'));
+                this.panels.forEach(panel => panel.classList.remove('active'));
+                
+                document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+                document.getElementById(`${tabName}Panel`).classList.add('active');
+                
+                // Load content based on tab
+                if (tabName === 'dashboard') {
+                    this.loadDashboard();
+                } else if (tabName === 'users') {
+                    this.renderUserTable();
+                } else if (tabName === 'management') {
+                    this.renderUserList();
+                } else if (tabName === 'registration-keys') {
+                    this.loadRegistrationKeys();
+                } else if (tabName === 'updates') {
+                    this.loadUpdateManagement();
+                } else if (tabName === 'monitoring') {
+                    this.loadMonitoring();
+                } else if (tabName === 'system') {
+                    this.loadSystemInfo();
+                }
+                
+                this.clearMessages();
+            }
+
+            loadDashboard() {
+                document.getElementById('totalUsers').textContent = this.users.length;
+                document.getElementById('activeUsers').textContent = this.getActiveSessions();
+                document.getElementById('totalPayments').textContent = this.getTotalPayments();
+            }
+
+            getActiveSessions() {
+                const now = Date.now();
+                const sessionTimeout = 30 * 60 * 1000; // 30 minutes
+                return this.users.filter(user => {
+                    if (!user.lastActivity) return false;
+                    return (now - user.lastActivity) < sessionTimeout;
+                }).length;
+            }
+
+            getTotalPayments() {
+                // This would typically come from payment data
+                // For now, return a placeholder
+                return Math.floor(Math.random() * 1000);
+            }
+
+            renderUserTable() {
+                const userListTable = document.getElementById('userListTable');
+                
+                if (this.users.length === 0) {
+                    userListTable.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">No users registered yet</div>';
+                    return;
+                }
+                
+                userListTable.innerHTML = `
+                     <table class="user-table">
+                         <thead>
+                             <tr>
+                                 <th>Name</th>
+                                 <th>Email</th>
+                                 <th>Username</th>
+                                 <th>Status</th>
+                                 <th>Approved</th>
+                                 <th>Registration Date</th>
+                                 <th>Actions</th>
+                             </tr>
+                         </thead>
+                         <tbody>
+                             ${this.users.map(user => {
+                                 const isApproved = user.approved === true;
+                                 const statusClass = isApproved ? 'status-approved' : 'status-pending';
+                                 const statusText = isApproved ? 'Approved' : 'Pending';
+                                 const rowClass = isApproved ? '' : 'unapproved-user';
+                                 return `
+                                 <tr class="${rowClass}">
+                                     <td>${this.escapeHtml(user.name)}</td>
+                                     <td>${this.escapeHtml(user.email)}</td>
+                                     <td>${this.escapeHtml(user.username || user.email)}</td>
+                                     <td><span class="user-status ${statusClass}">${statusText}</span></td>
+                                     <td>
+                                         <input type="checkbox" class="approval-checkbox" 
+                                                ${isApproved ? 'checked' : ''} 
+                                                onchange="adminSystem.toggleUserApproval('${user.id}', this.checked)">
+                                     </td>
+                                     <td>${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}</td>
+                                     <td>
+                                         <div class="action-buttons">
+                                             <button class="btn-edit" onclick="adminSystem.editUser('${user.id}')">Edit</button>
+                                             <button class="btn-delete" onclick="adminSystem.deleteUser('${user.id}')">Delete</button>
+                                         </div>
+                                     </td>
+                                 </tr>
+                             `}).join('')}
+                         </tbody>
+                     </table>
+                 `;
+                
+                this.renderApprovalRequests();
+            }
+
+            renderApprovalRequests() {
+                const container = document.getElementById('approvalRequestsContainer');
+                const noRequestsMessage = document.getElementById('noRequestsMessage');
+                if (!container) return;
+                
+                // Get pending users
+                const pendingUsers = this.users.filter(user => user.approved !== true);
+                
+                if (pendingUsers.length === 0) {
+                    noRequestsMessage.style.display = 'block';
+                    // Remove any existing request cards
+                    const existingCards = container.querySelectorAll('.approval-request-card');
+                    existingCards.forEach(card => card.remove());
+                    return;
+                }
+                
+                noRequestsMessage.style.display = 'none';
+                
+                // Clear existing cards
+                const existingCards = container.querySelectorAll('.approval-request-card');
+                existingCards.forEach(card => card.remove());
+                
+                // Create cards for pending users
+                pendingUsers.forEach(user => {
+                    const card = document.createElement('div');
+                    card.className = 'approval-request-card';
+                    card.innerHTML = `
+                        <div class="request-info">
+                            <div class="request-name">${this.escapeHtml(user.name)}</div>
+                            <div class="request-email">${this.escapeHtml(user.email)}</div>
+                            <div class="request-date">Registered: ${new Date(user.createdAt).toLocaleDateString()}</div>
+                        </div>
+                        <div class="request-actions">
+                            <button class="btn-approve" onclick="adminSystem.approveUserFromRequest('${user.id}')">Approve</button>
+                            <button class="btn-reject" onclick="adminSystem.rejectUserFromRequest('${user.id}')">Reject</button>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            }
+
+            renderUserList() {
+                if (this.users.length === 0) {
+                    this.userList.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">No users registered yet</div>';
+                    return;
+                }
+                
+                this.userList.innerHTML = this.users.map(user => `
+                    <div class="user-item">
+                        <div class="user-info">
+                            <div class="user-name">${this.escapeHtml(user.name)}</div>
+                            <div class="user-email">${this.escapeHtml(user.email)}</div>
+                        </div>
+                        <div class="user-actions">
+                            <button class="btn-small btn-login" onclick="adminSystem.loginAsUser('${user.id}')">Login As</button>
+                            <button class="btn-small btn-delete" onclick="adminSystem.deleteUser('${user.id}')">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            loadSystemInfo() {
+                document.getElementById('lastUpdated').textContent = new Date().toLocaleDateString();
+                
+                // Calculate approximate database size
+                const dataSize = JSON.stringify(this.users).length + 
+                               (localStorage.getItem('paymentData') || '').length;
+                document.getElementById('dbSize').textContent = `${Math.round(dataSize / 1024)} KB`;
+                
+                // Load server and machine information
+                this.loadServerInfo();
+            }
+            
+            loadServerInfo() {
+                // Get server name from window location
+                const serverName = window.location.hostname || 'localhost';
+                document.getElementById('serverName').textContent = serverName;
+                
+                // Get machine name (browser-based approximation)
+                const machineName = this.getMachineName();
+                document.getElementById('machineName').textContent = machineName;
+                
+                // Get operating system information
+                const os = this.getOperatingSystem();
+                document.getElementById('operatingSystem').textContent = os;
+                
+                // Server port is already set in HTML, but we can update it dynamically
+                const port = window.location.port || '8000';
+                document.getElementById('serverPort').textContent = port;
+            }
+            
+            getMachineName() {
+                // Since we're in a browser environment, we can't get the actual machine name
+                // We'll use a combination of available information
+                const userAgent = navigator.userAgent;
+                const platform = navigator.platform;
+                
+                // Try to extract meaningful information
+                if (platform.includes('Win')) {
+                    return `Windows-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+                } else if (platform.includes('Mac')) {
+                    return `Mac-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+                } else if (platform.includes('Linux')) {
+                    return `Linux-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+                } else {
+                    return `Unknown-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+                }
+            }
+            
+            getOperatingSystem() {
+                const userAgent = navigator.userAgent;
+                const platform = navigator.platform;
+                
+                if (userAgent.includes('Windows NT 10.0')) {
+                    return 'Windows 10/11';
+                } else if (userAgent.includes('Windows NT 6.3')) {
+                    return 'Windows 8.1';
+                } else if (userAgent.includes('Windows NT 6.2')) {
+                    return 'Windows 8';
+                } else if (userAgent.includes('Windows NT 6.1')) {
+                    return 'Windows 7';
+                } else if (userAgent.includes('Windows')) {
+                    return 'Windows';
+                } else if (userAgent.includes('Mac OS X')) {
+                    const match = userAgent.match(/Mac OS X ([\d_]+)/);
+                    if (match) {
+                        const version = match[1].replace(/_/g, '.');
+                        return `macOS ${version}`;
+                    }
+                    return 'macOS';
+                } else if (userAgent.includes('Linux')) {
+                    if (userAgent.includes('Ubuntu')) {
+                        return 'Ubuntu Linux';
+                    } else if (userAgent.includes('CentOS')) {
+                        return 'CentOS Linux';
+                    } else if (userAgent.includes('Red Hat')) {
+                        return 'Red Hat Linux';
+                    }
+                    return 'Linux';
+                } else if (userAgent.includes('Android')) {
+                    return 'Android';
+                } else if (userAgent.includes('iPhone') || userAgent.includes('iPad')) {
+                    return 'iOS';
+                } else {
+                    return 'Unknown OS';
+                }
+            }
+
+            loginAsUser(userId) {
+                const user = this.users.find(u => u.id === userId);
+                if (user) {
+                    this.setCurrentUser(user);
+                    window.location.href = 'calendar-app.html';
+                }
+            }
+
+            editUser(userId) {
+                const user = this.users.find(u => u.id === userId);
+                if (!user) return;
+                
+                document.getElementById('editUserName').value = user.name;
+                document.getElementById('editUserEmail').value = user.email;
+                document.getElementById('editUserPassword').value = '';
+                
+                const modal = document.getElementById('editUserModal');
+                modal.style.display = 'block';
+                
+                // Store current user ID for saving
+                this.currentEditUserId = userId;
+            }
+
+            closeEditModal() {
+                const modal = document.getElementById('editUserModal');
+                modal.style.display = 'none';
+                this.currentEditUserId = null;
+            }
+
+            saveUserChanges(event) {
+                event.preventDefault();
+                
+                if (!this.currentEditUserId) return;
+                
+                const user = this.users.find(u => u.id === this.currentEditUserId);
+                if (!user) return;
+                
+                const name = document.getElementById('editUserName').value.trim();
+                const email = document.getElementById('editUserEmail').value.trim();
+                const password = document.getElementById('editUserPassword').value;
+                
+                if (!name || !email) {
+                    this.showError('Name and email are required');
+                    return;
+                }
+                
+                // Check if email is already taken by another user
+                const existingUser = this.users.find(u => u.email === email && u.id !== this.currentEditUserId);
+                if (existingUser) {
+                    this.showError('Email is already taken by another user');
+                    return;
+                }
+                
+                user.name = name;
+                user.email = email;
+                if (password) {
+                    user.password = password;
+                }
+                
+                this.saveUsers();
+                this.renderUserTable();
+                this.renderUserList();
+                this.loadDashboard();
+                this.closeEditModal();
+                this.showSuccess('User updated successfully');
+            }
+
+            toggleUserApproval(userId, isApproved) {
+                const user = this.users.find(u => u.id === userId);
+                if (user) {
+                    user.approved = isApproved;
+                    this.saveUsers();
+                    this.renderUserTable();
+                    this.renderUserList();
+                    this.loadDashboard();
+                    const message = isApproved ? 'User approved successfully!' : 'User approval revoked!';
+                    this.showSuccess(message);
+                }
+            }
+
+            approveUserFromRequest(userId) {
+                const user = this.users.find(u => u.id === userId);
+                if (user) {
+                    user.approved = true;
+                    this.saveUsers();
+                    this.renderUserTable();
+                    this.renderUserList();
+                    this.loadDashboard();
+                    this.showSuccess('User approved successfully!');
+                }
+            }
+
+            rejectUserFromRequest(userId) {
+                const user = this.users.find(u => u.id === userId);
+                if (user) {
+                    // For rejection from approval requests, we can either delete the user or keep them as rejected
+                    // Let's keep them as rejected (approved = false)
+                    user.approved = false;
+                    this.saveUsers();
+                    this.renderUserTable();
+                    this.renderUserList();
+                    this.loadDashboard();
+                    this.showSuccess('User registration rejected!');
+                }
+            }
+
+            // Legacy methods for backward compatibility
+            approveUser(userId) {
+                this.approveUserFromRequest(userId);
+            }
+
+            rejectUser(userId) {
+                if (confirm('Are you sure you want to reject this user? They will need to be re-approved to login.')) {
+                    this.rejectUserFromRequest(userId);
+                }
+            }
+
+            deleteUser(userId) {
+                if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+                    this.users = this.users.filter(u => u.id !== userId);
+                    this.saveUsers();
+                    this.renderUserTable();
+                    this.renderUserList();
+                    this.loadDashboard();
+                    this.showSuccess('User deleted successfully');
+                }
+            }
+
+            logout() {
+                localStorage.removeItem('currentUser');
+                window.location.href = 'login.html';
+            }
+
+            // Utility methods
+            loadUsers() {
+                const saved = localStorage.getItem('calendarUsers');
+                return saved ? JSON.parse(saved) : [];
+            }
+
+            saveUsers() {
+                localStorage.setItem('calendarUsers', JSON.stringify(this.users));
+            }
+
+            getCurrentUser() {
+                const saved = localStorage.getItem('currentUser');
+                return saved ? JSON.parse(saved) : null;
+            }
+
+            setCurrentUser(user) {
+                const sessionData = {
+                    ...user,
+                    sessionStart: Date.now(),
+                    lastActivity: Date.now()
+                };
+                localStorage.setItem('currentUser', JSON.stringify(sessionData));
+            }
+
+            // Logo Management Methods
+            previewLogo(input) {
+                if (input.files && input.files[0]) {
+                    const file = input.files[0];
+                    
+                    // Validate file size (2MB max)
+                    if (file.size > 2 * 1024 * 1024) {
+                        alert('File size must be less than 2MB');
+                        input.value = '';
+                        return;
+                    }
+                    
+                    // Validate file type
+                    const validTypes = ['image/svg+xml', 'image/png', 'image/jpeg', 'image/jpg', 'image/gif'];
+                    if (!validTypes.includes(file.type)) {
+                        alert('Please select a valid image file (SVG, PNG, JPG, or GIF)');
+                        input.value = '';
+                        return;
+                    }
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        document.getElementById('logoPreview').src = e.target.result;
+                        document.getElementById('logoPreviewSection').style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+            
+            uploadLogo() {
+                const fileInput = document.getElementById('logoFileInput');
+                if (!fileInput.files || !fileInput.files[0]) {
+                    alert('Please select a file first');
+                    return;
+                }
+                
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    // Update current logo preview
+                    document.getElementById('currentLogoPreview').src = e.target.result;
+                    document.getElementById('currentLogoName').textContent = file.name;
+                    
+                    // Update all logo elements on current page
+                    const logoElements = document.querySelectorAll('img[src="logo.svg"], img[src*="logo"]');
+                    logoElements.forEach(img => {
+                        img.src = e.target.result;
+                    });
+                    
+                    // Store in localStorage for persistence across pages
+                    localStorage.setItem('customLogo', e.target.result);
+                    localStorage.setItem('customLogoName', file.name);
+                    
+                    // Hide preview section and reset input
+                    document.getElementById('logoPreviewSection').style.display = 'none';
+                    fileInput.value = '';
+                    
+                    this.showSuccess('Logo uploaded successfully! The new logo will appear on all pages.');
+                };
+                reader.readAsDataURL(file);
+            }
+            
+            cancelLogoUpload() {
+                document.getElementById('logoFileInput').value = '';
+                document.getElementById('logoPreviewSection').style.display = 'none';
+            }
+            
+            removeLogo() {
+                if (confirm('Are you sure you want to remove the current logo? This will restore the default logo.')) {
+                    // Reset to default logo
+                    document.getElementById('currentLogoPreview').src = 'logo.svg';
+                    document.getElementById('currentLogoName').textContent = 'logo.svg';
+                    
+                    // Remove from localStorage
+                    localStorage.removeItem('customLogo');
+                    localStorage.removeItem('customLogoName');
+                    
+                    this.showSuccess('Logo removed successfully! Default logo restored.');
+                }
+            }
+            
+            // Load custom logo on page load
+            loadCustomLogo() {
+                const customLogo = localStorage.getItem('customLogo');
+                const customLogoName = localStorage.getItem('customLogoName');
+                
+                if (customLogo && customLogoName) {
+                    document.getElementById('currentLogoPreview').src = customLogo;
+                    document.getElementById('currentLogoName').textContent = customLogoName;
+                }
+            }
+
+            // Registration Key Management Methods
+            loadRegistrationKeys() {
+                this.renderKeysList();
+                this.loadCustomLogo(); // Load custom logo when registration keys tab is accessed
+            }
+
+            generateRegistrationKey() {
+                const key = this.createRandomKey();
+                document.getElementById('generatedKeyInput').value = key;
+                document.getElementById('generatedKeyDisplay').style.display = 'block';
+            }
+
+            createRandomKey() {
+                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+                let result = '';
+                for (let i = 0; i < 16; i++) {
+                    if (i > 0 && i % 4 === 0) result += '-';
+                    result += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                return result;
+            }
+
+            copyKey(inputId) {
+                const input = document.getElementById(inputId);
+                input.select();
+                document.execCommand('copy');
+                this.showSuccess('Key copied to clipboard!');
+            }
+
+            saveGeneratedKey() {
+                const key = document.getElementById('generatedKeyInput').value;
+                if (key) {
+                    this.addRegistrationKey(key, 'Generated key');
+                    document.getElementById('generatedKeyDisplay').style.display = 'none';
+                    document.getElementById('generatedKeyInput').value = '';
+                    this.showSuccess('Registration key saved successfully!');
+                }
+            }
+
+            addCustomKey() {
+                const key = document.getElementById('customKeyInput').value.trim();
+                const description = document.getElementById('keyDescriptionInput').value.trim();
+                
+                if (!key) {
+                    this.showError('Please enter a registration key.');
+                    return;
+                }
+
+                if (this.isKeyExists(key)) {
+                    this.showError('This registration key already exists.');
+                    return;
+                }
+
+                this.addRegistrationKey(key, description || 'Custom key');
+                document.getElementById('customKeyInput').value = '';
+                document.getElementById('keyDescriptionInput').value = '';
+                this.showSuccess('Custom registration key added successfully!');
+            }
+
+            addRegistrationKey(key, description) {
+                const keys = this.getRegistrationKeys();
+                const newKey = {
+                    id: Date.now().toString(),
+                    key: key,
+                    description: description,
+                    createdAt: new Date().toISOString(),
+                    used: false
+                };
+                keys.push(newKey);
+                localStorage.setItem('registrationKeys', JSON.stringify(keys));
+                this.renderKeysList();
+            }
+
+            getRegistrationKeys() {
+                const keys = localStorage.getItem('registrationKeys');
+                return keys ? JSON.parse(keys) : [];
+            }
+
+            isKeyExists(key) {
+                const keys = this.getRegistrationKeys();
+                return keys.some(k => k.key === key);
+            }
+
+            deleteRegistrationKey(keyId) {
+                if (confirm('Are you sure you want to delete this registration key?')) {
+                    const keys = this.getRegistrationKeys();
+                    const updatedKeys = keys.filter(k => k.id !== keyId);
+                    localStorage.setItem('registrationKeys', JSON.stringify(updatedKeys));
+                    this.renderKeysList();
+                    this.showSuccess('Registration key deleted successfully!');
+                }
+            }
+
+            renderKeysList() {
+                const keys = this.getRegistrationKeys();
+                const keysList = document.getElementById('keysList');
+                
+                if (keys.length === 0) {
+                    keysList.innerHTML = '<p class="no-keys">No registration keys found. Generate or add a key to get started.</p>';
+                    return;
+                }
+
+                keysList.innerHTML = keys.map(key => `
+                    <div class="key-item">
+                        <div class="key-info">
+                            <div class="key-value">${this.escapeHtml(key.key)}</div>
+                            <div class="key-description">${this.escapeHtml(key.description)}</div>
+                            <div class="key-meta">
+                                Created: ${new Date(key.createdAt).toLocaleDateString()} | 
+                                Status: ${key.used ? 'Used' : 'Available'}
+                            </div>
+                        </div>
+                        <div class="key-actions">
+                            <button class="btn-copy" onclick="adminSystem.copyKeyValue('${key.key}')">Copy</button>
+                            <button class="btn-delete-key" onclick="adminSystem.deleteRegistrationKey('${key.id}')">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            copyKeyValue(key) {
+                navigator.clipboard.writeText(key).then(() => {
+                    this.showSuccess('Key copied to clipboard!');
+                }).catch(() => {
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = key;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    this.showSuccess('Key copied to clipboard!');
+                });
+            }
+
+            // Method to validate registration key (to be used in registration process)
+            validateRegistrationKey(key) {
+                const keys = this.getRegistrationKeys();
+                const foundKey = keys.find(k => k.key === key && !k.used);
+                if (foundKey) {
+                    // Mark key as used
+                    foundKey.used = true;
+                    localStorage.setItem('registrationKeys', JSON.stringify(keys));
+                    return true;
+                }
+                return false;
+            }
+
+            // Update Management Methods
+            loadUpdateManagement() {
+                this.loadCurrentVersion();
+                this.loadUpdateHistory();
+            }
+
+            loadCurrentVersion() {
+                // Load current version information
+                const currentVersion = localStorage.getItem('appVersion') || '1.0.0';
+                const lastUpdate = localStorage.getItem('lastUpdateDate') || 'Never';
+                
+                document.getElementById('currentVersion').textContent = currentVersion;
+                document.getElementById('lastUpdateDate').textContent = lastUpdate;
+                document.getElementById('updateStatus').textContent = '✓ Up to date';
+                document.getElementById('updateStatus').className = 'update-status-success';
+            }
+
+            loadUpdateHistory() {
+                const history = this.getUpdateHistory();
+                const historyContainer = document.getElementById('updateHistory');
+                
+                if (history.length === 0) {
+                    historyContainer.innerHTML = `
+                        <div class="update-history-item">
+                            <div class="update-version">v1.0.0</div>
+                            <div class="update-date">Initial Release</div>
+                            <div class="update-description">First version of the Payment Tracker application</div>
+                        </div>
+                    `;
+                } else {
+                    historyContainer.innerHTML = history.map(update => `
+                        <div class="update-history-item">
+                            <div class="update-version">v${update.version}</div>
+                            <div class="update-date">${new Date(update.date).toLocaleDateString()}</div>
+                            <div class="update-description">${this.escapeHtml(update.description)}</div>
+                        </div>
+                    `).join('');
+                }
+            }
+
+            previewUpdate(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                // Validate file type
+                if (!file.name.toLowerCase().endsWith('.zip')) {
+                    this.showError('Please select a ZIP file.');
+                    event.target.value = '';
+                    return;
+                }
+
+                // Validate file size (50MB limit)
+                const maxSize = 50 * 1024 * 1024; // 50MB in bytes
+                if (file.size > maxSize) {
+                    this.showError('File size exceeds 50MB limit.');
+                    event.target.value = '';
+                    return;
+                }
+
+                // Show preview section
+                const previewSection = document.getElementById('updatePreviewSection');
+                const updateInfo = document.getElementById('updateInfo');
+                
+                updateInfo.innerHTML = `
+                    <div><strong>File Name:</strong> ${this.escapeHtml(file.name)}</div>
+                    <div><strong>File Size:</strong> ${(file.size / (1024 * 1024)).toFixed(2)} MB</div>
+                    <div><strong>Upload Date:</strong> ${new Date().toLocaleDateString()}</div>
+                    <div style="margin-top: 10px; padding: 10px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px;">
+                        <strong>⚠️ Warning:</strong> Installing updates will modify application files. Please ensure you have a backup before proceeding.
+                    </div>
+                `;
+                
+                previewSection.style.display = 'block';
+            }
+
+            uploadUpdate() {
+                const fileInput = document.getElementById('updateFileInput');
+                const file = fileInput.files[0];
+                
+                if (!file) {
+                    this.showError('Please select an update file first.');
+                    return;
+                }
+
+                // Simulate update installation process
+                const uploadBtn = document.querySelector('.btn-upload-update');
+                uploadBtn.disabled = true;
+                uploadBtn.textContent = 'Installing Update...';
+
+                // Simulate installation delay
+                setTimeout(() => {
+                    try {
+                        // Add to update history
+                        const newVersion = this.generateNewVersion();
+                        this.addToUpdateHistory({
+                            version: newVersion,
+                            date: new Date().toISOString(),
+                            description: `Update from ${file.name}`,
+                            fileName: file.name
+                        });
+
+                        // Update current version
+                        localStorage.setItem('appVersion', newVersion);
+                        localStorage.setItem('lastUpdateDate', new Date().toLocaleDateString());
+
+                        // Reset form
+                        this.cancelUpdateUpload();
+                        this.loadUpdateManagement();
+                        
+                        this.showSuccess(`Update v${newVersion} installed successfully! The application has been updated.`);
+                    } catch (error) {
+                        this.showError('Failed to install update. Please try again.');
+                    } finally {
+                        uploadBtn.disabled = false;
+                        uploadBtn.textContent = 'Install Update';
+                    }
+                }, 3000);
+            }
+
+            cancelUpdateUpload() {
+                document.getElementById('updateFileInput').value = '';
+                document.getElementById('updatePreviewSection').style.display = 'none';
+            }
+
+            generateNewVersion() {
+                const currentVersion = localStorage.getItem('appVersion') || '1.0.0';
+                const parts = currentVersion.split('.');
+                const patch = parseInt(parts[2] || 0) + 1;
+                return `${parts[0]}.${parts[1]}.${patch}`;
+            }
+
+            getUpdateHistory() {
+                const history = localStorage.getItem('updateHistory');
+                return history ? JSON.parse(history) : [];
+            }
+
+            addToUpdateHistory(update) {
+                const history = this.getUpdateHistory();
+                history.unshift(update); // Add to beginning
+                localStorage.setItem('updateHistory', JSON.stringify(history));
+            }
+
+            escapeHtml(text) {
+                if (typeof text !== 'string') return '';
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            showError(message) {
+                this.errorMessage.textContent = message;
+                this.errorMessage.style.display = 'block';
+                this.successMessage.style.display = 'none';
+            }
+
+            showSuccess(message) {
+                this.successMessage.textContent = message;
+                this.successMessage.style.display = 'block';
+                this.errorMessage.style.display = 'none';
+            }
+
+            clearMessages() {
+                this.errorMessage.style.display = 'none';
+                this.successMessage.style.display = 'none';
+            }
+
+            showUserDetails() {
+                const modal = document.getElementById('userDetailsModal');
+                const content = document.getElementById('userDetailsContent');
+                
+                if (this.users.length === 0) {
+                    content.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No users registered yet</p>';
+                } else {
+                    const userDetailsData = this.getUserPaymentDetails();
+                    content.innerHTML = this.renderUserDetailsTable(userDetailsData);
+                }
+                
+                modal.style.display = 'block';
+            }
+
+            closeUserDetails() {
+                const modal = document.getElementById('userDetailsModal');
+                modal.style.display = 'none';
+            }
+
+            getUserPaymentDetails() {
+                return this.users.map(user => {
+                    const currentWeekTotal = this.getUserWeekTotal(user.username, 0);
+                    const lastWeekTotal = this.getUserWeekTotal(user.username, -1);
+                    
+                    return {
+                        id: user.id,
+                        name: user.name,
+                        username: user.username,
+                        currentWeek: currentWeekTotal,
+                        lastWeek: lastWeekTotal
+                    };
+                });
+            }
+
+            getUserWeekTotal(username, weekOffset = 0) {
+                const key = `calendarPayments_${username}`;
+                const userPayments = localStorage.getItem(key);
+                
+                if (!userPayments) return 0;
+                
+                const payments = JSON.parse(userPayments);
+                const now = new Date();
+                const targetDate = new Date(now);
+                targetDate.setDate(now.getDate() + (weekOffset * 7));
+                
+                // Get start of target week (Sunday)
+                const startOfWeek = new Date(targetDate);
+                const day = startOfWeek.getDay();
+                const diff = startOfWeek.getDate() - day;
+                startOfWeek.setDate(diff);
+                
+                let total = 0;
+                
+                // Calculate total for 7 days of the target week
+                for (let i = 0; i < 7; i++) {
+                    const date = new Date(startOfWeek);
+                    date.setDate(startOfWeek.getDate() + i);
+                    const dateStr = date.toISOString().split('T')[0];
+                    
+                    if (payments[dateStr]) {
+                        total += payments[dateStr].reduce((sum, payment) => sum + (payment.amount || 0), 0);
+                    }
+                }
+                
+                return total;
+            }
+
+            renderUserDetailsTable(userDetailsData) {
+                if (userDetailsData.length === 0) {
+                    return '<p style="text-align: center; color: #666; padding: 20px;">No users found</p>';
+                }
+                
+                return `
+                    <table class="user-details-table">
+                        <thead>
+                            <tr>
+                                <th>User ID</th>
+                                <th>Name</th>
+                                <th>Username</th>
+                                <th>Current Week</th>
+                                <th>Last Week</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${userDetailsData.map(user => `
+                                <tr>
+                                    <td>${this.escapeHtml(user.id)}</td>
+                                    <td>${this.escapeHtml(user.name)}</td>
+                                    <td>${this.escapeHtml(user.username)}</td>
+                                    <td class="payment-amount ${user.currentWeek === 0 ? 'zero' : ''}">$${user.currentWeek.toFixed(2)}</td>
+                                    <td class="payment-amount ${user.lastWeek === 0 ? 'zero' : ''}">$${user.lastWeek.toFixed(2)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            }
+        }
+
+        // Global function to apply custom logo across all pages
+        function applyCustomLogo() {
+            const customLogo = localStorage.getItem('customLogo');
+            if (customLogo) {
+                const logoElements = document.querySelectorAll('img[src="logo.svg"], img[src*="logo"]');
+                logoElements.forEach(img => {
+                    img.src = customLogo;
+                });
+            }
+        }
+
+        // Initialize the admin system
+        let adminSystem;
+        document.addEventListener('DOMContentLoaded', () => {
+            adminSystem = new AdminSystem();
+            
+            // Apply custom logo on page load
+            applyCustomLogo();
+            
+            // Bind edit form submission
+            document.getElementById('editUserForm').addEventListener('submit', (e) => {
+                adminSystem.saveUserChanges(e);
+            });
+            
+            // Close modal when clicking outside of it
+            window.onclick = function(event) {
+                const userDetailsModal = document.getElementById('userDetailsModal');
+                const editUserModal = document.getElementById('editUserModal');
+                
+                if (event.target === userDetailsModal) {
+                    adminSystem.closeUserDetails();
+                } else if (event.target === editUserModal) {
+                    adminSystem.closeEditModal();
+                }
+            }
+        });
+        
+        // Apply custom logo when page becomes visible (for browser tab switching)
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                applyCustomLogo();
+            }
+        });
+
+        // Monitoring System
+        class MonitoringSystem {
+            constructor() {
+                this.errorLog = [];
+                this.performanceMetrics = {
+                    requestCount: 0,
+                    responseTime: 0,
+                    cpuUsage: 0,
+                    memoryUsage: 0
+                };
+                this.startTime = Date.now();
+                this.initializeMonitoring();
+            }
+
+            initializeMonitoring() {
+                // Start performance monitoring
+                this.startPerformanceMonitoring();
+                
+                // Monitor errors
+                window.addEventListener('error', (event) => {
+                    this.logError('ERROR', event.message, event.filename, event.lineno);
+                });
+
+                window.addEventListener('unhandledrejection', (event) => {
+                    this.logError('PROMISE_REJECTION', event.reason);
+                });
+            }
+
+            startPerformanceMonitoring() {
+                setInterval(() => {
+                    this.updateSystemMetrics();
+                }, 5000); // Update every 5 seconds
+            }
+
+            updateSystemMetrics() {
+                // Simulate system metrics (in a real app, these would come from server)
+                this.performanceMetrics.cpuUsage = Math.random() * 100;
+                this.performanceMetrics.memoryUsage = 40 + Math.random() * 40;
+                this.performanceMetrics.responseTime = 50 + Math.random() * 200;
+                
+                // Update UI if monitoring panel is active
+                if (document.getElementById('monitoringPanel').classList.contains('active')) {
+                    this.updateMetricsDisplay();
+                }
+            }
+
+            updateMetricsDisplay() {
+                document.getElementById('cpuUsage').textContent = `${this.performanceMetrics.cpuUsage.toFixed(1)}%`;
+                document.getElementById('memoryUsage').textContent = `${this.performanceMetrics.memoryUsage.toFixed(1)}%`;
+                document.getElementById('responseTime').textContent = `${this.performanceMetrics.responseTime.toFixed(0)}ms`;
+            }
+
+            logError(level, message, filename = '', lineno = '') {
+                const timestamp = new Date().toLocaleString();
+                const logEntry = {
+                    timestamp,
+                    level,
+                    message,
+                    filename,
+                    lineno
+                };
+                
+                this.errorLog.unshift(logEntry);
+                
+                // Keep only last 100 entries
+                if (this.errorLog.length > 100) {
+                    this.errorLog = this.errorLog.slice(0, 100);
+                }
+                
+                // Update error log display if visible
+                if (document.getElementById('monitoringPanel').classList.contains('active')) {
+                    this.refreshErrorLogDisplay();
+                }
+            }
+
+            refreshErrorLogDisplay() {
+                const errorLogContainer = document.getElementById('errorLog');
+                errorLogContainer.innerHTML = '';
+                
+                if (this.errorLog.length === 0) {
+                    errorLogContainer.innerHTML = '<div class="log-entry log-info"><span class="log-message">No errors logged</span></div>';
+                    return;
+                }
+                
+                this.errorLog.forEach(entry => {
+                    const logElement = document.createElement('div');
+                    logElement.className = `log-entry log-${entry.level.toLowerCase()}`;
+                    logElement.innerHTML = `
+                        <span class="log-time">${entry.timestamp}</span>
+                        <span class="log-level">${entry.level}</span>
+                        <span class="log-message">${entry.message}</span>
+                    `;
+                    errorLogContainer.appendChild(logElement);
+                });
+            }
+
+            clearErrorLog() {
+                this.errorLog = [];
+                this.refreshErrorLogDisplay();
+                adminSystem.showSuccess('Error log cleared successfully');
+            }
+
+            refreshErrorLog() {
+                this.refreshErrorLogDisplay();
+                adminSystem.showSuccess('Error log refreshed');
+            }
+        }
+
+        // Data Manager
+        class DataManager {
+            constructor() {
+                this.setupFileInput();
+            }
+
+            setupFileInput() {
+                const fileInput = document.getElementById('importFile');
+                if (fileInput) {
+                    fileInput.addEventListener('change', (event) => {
+                        const file = event.target.files[0];
+                        if (file) {
+                            document.getElementById('importStatus').textContent = `Selected: ${file.name}`;
+                        }
+                    });
+                }
+            }
+
+            exportUsers(format) {
+                try {
+                    const users = adminSystem.users;
+                    let content, filename, mimeType;
+
+                    if (format === 'csv') {
+                        content = this.convertToCSV(users);
+                        filename = `users_export_${new Date().toISOString().split('T')[0]}.csv`;
+                        mimeType = 'text/csv';
+                    } else if (format === 'excel') {
+                        // For Excel, we'll use CSV format with .xlsx extension
+                        content = this.convertToCSV(users);
+                        filename = `users_export_${new Date().toISOString().split('T')[0]}.xlsx`;
+                        mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+                    }
+
+                    this.downloadFile(content, filename, mimeType);
+                    adminSystem.showSuccess(`Users exported successfully as ${format.toUpperCase()}`);
+                } catch (error) {
+                    adminSystem.showError('Failed to export users: ' + error.message);
+                }
+            }
+
+            exportPayments(format) {
+                try {
+                    // Simulate payment data
+                    const payments = [
+                        { id: 1, user: 'john@example.com', amount: 100, date: '2024-01-15', status: 'completed' },
+                        { id: 2, user: 'jane@example.com', amount: 250, date: '2024-01-14', status: 'pending' }
+                    ];
+
+                    const content = this.convertToCSV(payments);
+                    const filename = `payments_export_${new Date().toISOString().split('T')[0]}.csv`;
+                    
+                    this.downloadFile(content, filename, 'text/csv');
+                    adminSystem.showSuccess('Payments exported successfully');
+                } catch (error) {
+                    adminSystem.showError('Failed to export payments: ' + error.message);
+                }
+            }
+
+            convertToCSV(data) {
+                if (!data || data.length === 0) {
+                    return 'No data available';
+                }
+
+                const headers = Object.keys(data[0]);
+                const csvContent = [
+                    headers.join(','),
+                    ...data.map(row => 
+                        headers.map(header => {
+                            const value = row[header] || '';
+                            return typeof value === 'string' && value.includes(',') 
+                                ? `"${value}"` 
+                                : value;
+                        }).join(',')
+                    )
+                ].join('\n');
+
+                return csvContent;
+            }
+
+            downloadFile(content, filename, mimeType) {
+                const blob = new Blob([content], { type: mimeType });
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+            }
+
+            importData() {
+                const fileInput = document.getElementById('importFile');
+                const file = fileInput.files[0];
+                const statusElement = document.getElementById('importStatus');
+
+                if (!file) {
+                    statusElement.textContent = 'Please select a file first';
+                    statusElement.className = 'import-status error';
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const content = event.target.result;
+                        const data = this.parseCSV(content);
+                        
+                        // Simulate import process
+                        setTimeout(() => {
+                            statusElement.textContent = `Successfully imported ${data.length} records`;
+                            statusElement.className = 'import-status success';
+                            adminSystem.showSuccess('Data imported successfully');
+                        }, 1000);
+                        
+                    } catch (error) {
+                        statusElement.textContent = 'Import failed: ' + error.message;
+                        statusElement.className = 'import-status error';
+                    }
+                };
+                
+                reader.readAsText(file);
+            }
+
+            parseCSV(content) {
+                const lines = content.split('\n').filter(line => line.trim());
+                if (lines.length < 2) {
+                    throw new Error('Invalid CSV format');
+                }
+                
+                const headers = lines[0].split(',').map(h => h.trim());
+                const data = [];
+                
+                for (let i = 1; i < lines.length; i++) {
+                    const values = lines[i].split(',').map(v => v.trim());
+                    const row = {};
+                    headers.forEach((header, index) => {
+                        row[header] = values[index] || '';
+                    });
+                    data.push(row);
+                }
+                
+                return data;
+            }
+
+            createBackup() {
+                const statusElement = document.getElementById('backupStatus');
+                statusElement.textContent = 'Creating backup...';
+                statusElement.className = 'backup-status';
+                
+                // Simulate backup process
+                setTimeout(() => {
+                    const backupData = {
+                        users: adminSystem.users,
+                        timestamp: new Date().toISOString(),
+                        version: '1.0.0'
+                    };
+                    
+                    const filename = `backup_${new Date().toISOString().split('T')[0]}.json`;
+                    this.downloadFile(JSON.stringify(backupData, null, 2), filename, 'application/json');
+                    
+                    statusElement.textContent = 'Backup created successfully';
+                    statusElement.className = 'backup-status success';
+                    adminSystem.showSuccess('Backup created and downloaded');
+                }, 2000);
+            }
+
+            restoreBackup() {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.json';
+                
+                input.onchange = (event) => {
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    
+                    const statusElement = document.getElementById('backupStatus');
+                    statusElement.textContent = 'Restoring backup...';
+                    statusElement.className = 'backup-status';
+                    
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const backupData = JSON.parse(e.target.result);
+                            
+                            // Simulate restore process
+                            setTimeout(() => {
+                                if (backupData.users) {
+                                    adminSystem.users = backupData.users;
+                                    localStorage.setItem('users', JSON.stringify(backupData.users));
+                                }
+                                
+                                statusElement.textContent = 'Backup restored successfully';
+                                statusElement.className = 'backup-status success';
+                                adminSystem.showSuccess('Backup restored successfully');
+                                adminSystem.loadDashboard();
+                            }, 2000);
+                            
+                        } catch (error) {
+                            statusElement.textContent = 'Restore failed: Invalid backup file';
+                            statusElement.className = 'backup-status error';
+                        }
+                    };
+                    
+                    reader.readAsText(file);
+                };
+                
+                input.click();
+            }
+        }
+
+        // Initialize monitoring and data management systems
+        const monitoringSystem = new MonitoringSystem();
+        const dataManager = new DataManager();
+
+        // Add loadMonitoring method to AdminSystem
+        AdminSystem.prototype.loadMonitoring = function() {
+            // Update system metrics display
+            monitoringSystem.updateMetricsDisplay();
+            
+            // Refresh error log
+            monitoringSystem.refreshErrorLogDisplay();
+            
+            // Log monitoring access
+            monitoringSystem.logError('INFO', 'Monitoring panel accessed');
+        };
+    </script>
+</body>
+</html>

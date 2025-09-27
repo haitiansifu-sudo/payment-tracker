@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset Admin User</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .success {
+            color: green;
+            margin: 10px 0;
+        }
+        .info {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .credentials {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border-left: 4px solid #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Admin User Reset Utility</h1>
+        
+        <div class="info">
+            <strong>Purpose:</strong> This utility will reset and properly initialize the admin user for the Payment Tracker system.
+        </div>
+
+        <div class="credentials">
+            <h3>Default Admin Credentials:</h3>
+            <p><strong>Email:</strong> admin@system.com</p>
+            <p><strong>Password:</strong> admin123</p>
+        </div>
+
+        <div class="credentials">
+            <h3>Test Registration Key:</h3>
+            <p><strong>Key:</strong> 024222 (if this exists in your system)</p>
+            <p>Or use the default keys after creating them below.</p>
+        </div>
+
+        <button class="btn" onclick="resetAdmin()">Reset Admin User</button>
+        <button class="btn" onclick="createDefaultKeys()">Create Default Registration Keys</button>
+        <button class="btn" onclick="testAdminLogin()">Test Admin Login</button>
+        <button class="btn" onclick="clearAllData()">Clear All Data (Reset Everything)</button>
+        <button class="btn" onclick="showCurrentData()">Show Current Data</button>
+
+        <div id="result"></div>
+        <div id="dataDisplay"></div>
+
+        <div style="margin-top: 30px;">
+            <a href="login.html" class="btn">Go to Login Page</a>
+        </div>
+    </div>
+
+    <script>
+        function hashPassword(password) {
+            // Same hash function as in login.html
+            let hash = 0;
+            const salt = 'calendar_app_salt_2024';
+            const combined = password + salt;
+            for (let i = 0; i < combined.length; i++) {
+                const char = combined.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash; // Convert to 32-bit integer
+            }
+            return Math.abs(hash).toString(16);
+        }
+
+        function resetAdmin() {
+            // Get existing users or create empty array
+            let users = [];
+            const saved = localStorage.getItem('calendarUsers');
+            if (saved) {
+                users = JSON.parse(saved);
+            }
+
+            // Remove any existing admin users
+            users = users.filter(u => u.role !== 'admin' || u.email !== 'admin@system.com');
+
+            // Create new admin user
+            const defaultAdmin = {
+                id: 'admin-001',
+                name: 'System Administrator',
+                email: 'admin@system.com',
+                password: hashPassword('admin123'),
+                role: 'admin',
+                approved: true,
+                createdAt: new Date().toISOString(),
+                settings: {
+                    theme: 'light',
+                    notifications: true,
+                    currency: 'USD',
+                    dateFormat: 'MM/DD/YYYY'
+                }
+            };
+
+            users.push(defaultAdmin);
+            localStorage.setItem('calendarUsers', JSON.stringify(users));
+
+            // Clear any existing session
+            localStorage.removeItem('currentUser');
+
+            document.getElementById('result').innerHTML = 
+                '<div class="success">✅ Admin user has been reset successfully!<br>' +
+                'You can now login with:<br>' +
+                '<strong>Email:</strong> admin@system.com<br>' +
+                '<strong>Password:</strong> admin123</div>';
+        }
+
+        function createDefaultKeys() {
+            // Create default registration keys
+            const defaultKeys = [
+                {
+                    id: 'key-001',
+                    key: 'DEMO2024',
+                    description: 'Default demo key',
+                    createdAt: new Date().toISOString(),
+                    usedCount: 0
+                },
+                {
+                    id: 'key-002', 
+                    key: 'REGISTER123',
+                    description: 'Default registration key',
+                    createdAt: new Date().toISOString(),
+                    usedCount: 0
+                },
+                {
+                    id: 'key-003',
+                    key: 'WELCOME2024',
+                    description: 'Welcome key for new users',
+                    createdAt: new Date().toISOString(),
+                    usedCount: 0
+                }
+            ];
+
+            localStorage.setItem('registrationKeys', JSON.stringify(defaultKeys));
+
+            document.getElementById('result').innerHTML = 
+                '<div class="success">✅ Default registration keys created successfully!<br>' +
+                'Available keys:<br>' +
+                '<strong>DEMO2024</strong><br>' +
+                '<strong>REGISTER123</strong><br>' +
+                '<strong>WELCOME2024</strong><br>' +
+                'You can now use any of these keys to register new users.</div>';
+        }
+
+        function testAdminLogin() {
+            const users = localStorage.getItem('calendarUsers');
+            if (!users) {
+                document.getElementById('result').innerHTML = 
+                    '<div style="color: red;">❌ No users found! Please reset admin user first.</div>';
+                return;
+            }
+
+            const parsedUsers = JSON.parse(users);
+            const adminUser = parsedUsers.find(u => u.email === 'admin@system.com' && u.role === 'admin');
+            
+            if (!adminUser) {
+                document.getElementById('result').innerHTML = 
+                    '<div style="color: red;">❌ Admin user not found! Please reset admin user first.</div>';
+                return;
+            }
+
+            // Test password hash
+            const testPassword = 'admin123';
+            const expectedHash = hashPassword(testPassword);
+            const actualHash = adminUser.password;
+            
+            let html = '<h3>Admin Login Test Results:</h3>';
+            html += '<p><strong>Admin User Found:</strong> ✅ Yes</p>';
+            html += '<p><strong>Email:</strong> ' + adminUser.email + '</p>';
+            html += '<p><strong>Role:</strong> ' + adminUser.role + '</p>';
+            html += '<p><strong>Expected Password Hash:</strong> ' + expectedHash + '</p>';
+            html += '<p><strong>Actual Password Hash:</strong> ' + actualHash + '</p>';
+            html += '<p><strong>Password Match:</strong> ' + (expectedHash === actualHash ? '✅ Yes' : '❌ No') + '</p>';
+            
+            if (expectedHash === actualHash) {
+                html += '<div class="success">✅ Admin login should work with admin@system.com / admin123</div>';
+            } else {
+                html += '<div style="color: red;">❌ Password hash mismatch! Please reset admin user.</div>';
+            }
+
+            document.getElementById('result').innerHTML = html;
+        }
+
+        function clearAllData() {
+            if (confirm('This will delete ALL data including users and settings. Are you sure?')) {
+                localStorage.clear();
+                document.getElementById('result').innerHTML = 
+                    '<div class="success">✅ All data has been cleared. The system has been reset to initial state.</div>';
+            }
+        }
+
+        function showCurrentData() {
+            const users = localStorage.getItem('calendarUsers');
+            const currentUser = localStorage.getItem('currentUser');
+            const registrationKeys = localStorage.getItem('registrationKeys');
+            
+            let html = '<h3>Current Data:</h3>';
+            
+            if (users) {
+                const parsedUsers = JSON.parse(users);
+                html += '<h4>Users (' + parsedUsers.length + '):</h4>';
+                html += '<pre>' + JSON.stringify(parsedUsers, null, 2) + '</pre>';
+            } else {
+                html += '<p>No users found in localStorage</p>';
+            }
+            
+            if (currentUser) {
+                html += '<h4>Current Session:</h4>';
+                html += '<pre>' + JSON.stringify(JSON.parse(currentUser), null, 2) + '</pre>';
+            } else {
+                html += '<p>No active session</p>';
+            }
+
+            if (registrationKeys) {
+                const parsedKeys = JSON.parse(registrationKeys);
+                html += '<h4>Registration Keys (' + parsedKeys.length + '):</h4>';
+                html += '<pre>' + JSON.stringify(parsedKeys, null, 2) + '</pre>';
+            } else {
+                html += '<p><strong>No registration keys found!</strong> This is why registration is failing.</p>';
+            }
+            
+            document.getElementById('dataDisplay').innerHTML = html;
+        }
+
+        // Auto-show current data on page load
+        window.onload = function() {
+            showCurrentData();
+        };
+    </script>
+</body>
+</html>
